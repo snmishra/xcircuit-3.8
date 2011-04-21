@@ -1,0 +1,6 @@
+xcircuit
+config.cache
+config.log
+*.o
+*.so
+*~
