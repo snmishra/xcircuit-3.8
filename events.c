@@ -5970,6 +5970,7 @@ void path_op(genericptr editpart, int op, int x, int y)
             SetFunction(dpy, areawin->gc, GXcopy); 
             XTopSetForeground(newpath->color);
             UDrawPath(newpath, xobjs.pagelist[areawin->page]->wirewidth);
+	    incr_changes(topobject);
 	 }
 	 else {		/* restore previous path from edit stack */
 	    free_single((genericptr)newpath);
@@ -6089,6 +6090,7 @@ void path_op(genericptr editpart, int op, int x, int y)
                   XTopSetForeground(newpoly->color);
                   UDrawPolygon(newpoly, xobjs.pagelist[areawin->page]->wirewidth);
                   if (!nonnetwork(newpoly)) invalidate_netlist(topobject);
+		  incr_changes(topobject);
 	       }
 	    }
             else {
@@ -6163,12 +6165,13 @@ void path_op(genericptr editpart, int op, int x, int y)
 		   (newarc->angle1 != newarc->angle2)) {
                SetFunction(dpy, areawin->gc, GXcopy);
                XTopSetForeground(newarc->color);
+	       incr_changes(topobject);
                if (eventmode == ARC_MODE) {
-	          incr_changes(topobject);
 	          register_for_undo(XCF_Arc, UNDO_MORE, areawin->topinstance,
 				newarc);
 	       }
                UDrawArc(newarc, xobjs.pagelist[areawin->page]->wirewidth);
+	       
 	    }
 	    else {
 
@@ -6269,8 +6272,8 @@ void path_op(genericptr editpart, int op, int x, int y)
 	    if (op == XCF_Finish_Element) {
 	       SetFunction(dpy, areawin->gc, GXcopy);
 	       XTopSetForeground(newspline->color);
+	       incr_changes(topobject);
 	       if (eventmode == SPLINE_MODE) {
-		  incr_changes(topobject);
 		  register_for_undo(XCF_Spline, UNDO_MORE, areawin->topinstance,
 				newspline);
 	       }
