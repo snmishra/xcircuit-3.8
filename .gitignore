@@ -6,3 +6,16 @@ config.log
 *~
 UPDATE_ME
 VERSION
+autom4te.cache
+Makefile.in
+Xw/Makefile.in
+aclocal.m4
+asg/Makefile.in
+config.guess
+config.sub
+configure
+install-sh
+missing
+mkinstalldirs
+spiceparser/Makefile.in
+
