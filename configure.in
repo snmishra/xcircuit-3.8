@@ -689,7 +689,7 @@ if test "x$xc_with_tcl" != "x" ; then
 	SHDLIB_EXT=".sl"
 	;;
      *cygwin*)
-	SHDLIB_EXT=".dll"
+	SHDLIB_EXT=".dll.a"
 	;;
      *-darwin*)
 	SHDLIB_EXT=".dylib"
@@ -916,7 +916,7 @@ if test "x$xc_with_tcl" != "x" ; then
 
     *cygwin*)
       AC_DEFINE(CYGWIN)
-      SHDLIB_EXT=".dll"
+      SHDLIB_EXT=".dll.a"
       LDDL_FLAGS="-shared -Wl,--enable-auto-image-base -Wl,-rpath,${loader_run_path}"
       SHLIB_LIB_SPECS="${LIB_SPECS}"
       ;;
