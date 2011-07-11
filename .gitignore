@@ -18,4 +18,14 @@ install-sh
 missing
 mkinstalldirs
 spiceparser/Makefile.in
+confwx2NPt/
+lib/tcl/xcircuit.dll.a
+lib/tcl/xcircuit.sh
+lib/tcl/xcircuit.tcl
+lib/xcircuit.1
+menudep.exe
+xcircexec.exe
+Makefile
+config.status
+
 
