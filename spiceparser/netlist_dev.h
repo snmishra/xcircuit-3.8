@@ -24,7 +24,7 @@
 #ifndef __NETLIST_DEV_H__
 #define __NETLIST_DEV_H__
 #ifndef __NETLIST_H__
-#include "netlist.h"
+#include "netlist.lib/netlist.h"
 #endif
 
 #define DEVNODE_HEAD 0

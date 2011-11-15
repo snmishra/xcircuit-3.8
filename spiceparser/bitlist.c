@@ -24,7 +24,7 @@ Conrad Ziesler
 
 */
 
-#include "debug.h"
+#include "makeutils.lib/debug.h"
 #include "bitlist.h"
 
 

@@ -28,9 +28,9 @@ Conrad Ziesler
 #include <math.h>
 #include <stdio.h>
 
-#include "debug.h"
+#include "makeutils.lib/debug.h"
 
-#include "equations.h"
+#include "equations.lib/equations.h"
 
 int __debug_eqn__=0;
 

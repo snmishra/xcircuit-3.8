@@ -23,8 +23,8 @@
 */
 
 
-#include "debug.h"
-#include "hash.h"
+#include "makeutils.lib/debug.h"
+#include "struct.lib/hash.h"
 
  
 

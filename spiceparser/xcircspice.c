@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#include "debug.h"
-#include "scanner.h"
-#include "netlist_spice.h"
+#include "makeutils.lib/debug.h"
+#include "parsers.lib/scanner.h"
+#include "netlist.lib/netlist_spice.h"
 
 #define fprintf tcl_printf
 
@@ -110,7 +110,7 @@ do_ckt:
    }
 
    /* kludge for getting the top-level circuit */
-   if (ckt == spice->ckt) return;
+   if (ckt == spice->ckt) return 0;
    else {
       ckt = spice->ckt;
       goto do_ckt;

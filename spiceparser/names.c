@@ -25,10 +25,10 @@
 
 
 #include <stdio.h>
-#include "debug.h"
+#include "makeutils.lib/debug.h"
 
 #define __NAMES_PRIVATE__
-#include "names.h"
+#include "struct.lib/names.h"
 
 static namehash_t *names_newhash(names_t *nt, int refp, const char *str)
 {

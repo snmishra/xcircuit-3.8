@@ -28,9 +28,9 @@ Conrad Ziesler
 #include <math.h>
 #include <stdio.h>
 
-#include "debug.h"
+#include "makeutils.lib/debug.h"
 
-#include "eqn.h"
+#include "equations.lib/eqn.h"
 extern int __debug_eqn__;
 
 /* int __debug_eqn__=1; */
@@ -47,7 +47,7 @@ extern int __debug_eqn__;
 
 
 
-#include "memory.h"
+#include "struct.lib/memory.h"
 #define MAX_STACK 1024
 
 static memory_t  eqn_mem_default=MEMORY_INIT;

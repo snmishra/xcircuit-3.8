@@ -24,13 +24,11 @@ Conrad Ziesler
 #include <stdio.h>
 /* note: 
 
-   we try to store a netlist in a form which is as compact as
-   possible, while being extensible by clients, in addition to being
-   general enough to handle all possible netlist input formats
+   we try to store a netlist in a form which is as compact as possible, while being extensible
+   by clients, in addition to being general enough to handle all possible netlist input formats
 
-   the primary memory saving device is the termptr_t bitfield, where
-   we make a complex pointer which represents the type of node it
-   points to.
+   the primary memory saving device is the termptr_t bitfield, where we make a complex
+   pointer which represents the type of node it points to.
 
    also we statically allocate memory for the devices using list_t blocks.
    and allocate extra space per device as defined by the client structure
@@ -40,15 +38,14 @@ Conrad Ziesler
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "debug.h"
+#include "makeutils.lib/debug.h"
 
 #define __NETLIST_PRIVATE__
-#include "netlist.h"
-#include "mergedup.h"
+#include "netlist.lib/netlist.h"
+#include "struct.lib/mergedup.h"
 
 
-/* call these at entry and exit of all netlist functions that
-   potentially modify equations */
+/* call these at entry and exit of all netlist functions that potentially modify equations */
 void netlist_eqn_begin(netlist_t *nl)
 {
   assert(nl->eqn_mem!=NULL);

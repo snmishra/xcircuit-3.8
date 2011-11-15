@@ -23,17 +23,17 @@
 */
 
 #include <stdarg.h>
-#include "calling.h"
+
 #ifndef __SCANNER_H__
 #define __SCANNER_H__
 
 
 #ifndef __MEMORY_H__
-#include "memory.h"
+#include "struct.lib/memory.h"
 #endif
 
 #ifndef __NAMES_H__
-#include "names.h"
+#include "struct.lib/names.h"
 #endif
 
 /* we provide a consistent way for tools to read large text files
@@ -129,10 +129,10 @@ typedef struct scanner_st
 void scanner_add_tokens(scanner_t *scan, tokenmap_t *map);
 void scanner_reset_tokens(scanner_t *scan);
 
-DECLSPEC void CALLCONV scanner_init(scanner_t *scan);    /* init all structures */
-DECLSPEC void CALLCONV scanner_release(scanner_t *scan); /* free all associated structures */
+void scanner_init(scanner_t *scan);    /* init all structures */
+void scanner_release(scanner_t *scan); /* free all associated structures */
 
-DECLSPEC void CALLCONV scanner_input_newfp(scanner_t *scan, void *fp);
+void scanner_input_newfp(scanner_t *scan, void *fp);
 void scanner_sect_new(scanner_t *scan, scanner_def_t *defs, tokenmap_t *map);
 void scanner_input_release(scanner_t *scan); /* release top of stack */
 void scanner_sect_release(scanner_t *scan);  /* release top of stack */
@@ -149,7 +149,7 @@ void scanner_def_err(scanner_t *scan, char *fmt, va_list vp);
 int scanner_parse_all(scanner_t *scan);
 void scanner_free_all(scanner_t *scan); /* free all string (&card/&deck) memory */ 
 int scanner_parse_line(scanner_t *scan);
-unsigned int parse_binary(char **str);
+unsigned parse_binary(char **str);
 
 /* misc. */
 

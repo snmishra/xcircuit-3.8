@@ -6,20 +6,20 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#include "debug.h"
-#include "scanner.h"
-#include "netlist_spice.h"
+#include "makeutils.lib/debug.h"
+#include "parsers.lib/scanner.h"
+#include "netlist.lib/netlist_spice.h"
 
 
 
-/*
-  cell: c2 INVX1
-  area: 10.368
-  input: i_a
-  out: o_y
-  vss: i_vss
-  vdd: i_vdd
-*/
+      /*
+      cell: c2 INVX1
+area: 10.368
+input: i_a
+out: o_y
+vss: i_vss
+vdd: i_vdd
+      */
 
 
 int is_power(char *name)
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
   if((subckt_filename==NULL))
     {
       fprintf(stderr,"Usage: translator -i input_subckt_file"
-	      " -o output_flat_file -p output_pins_file\n");
+			" -o output_flat_file -p output_pins_file\n");
       exit(1);
     }
  

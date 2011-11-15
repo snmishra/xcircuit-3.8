@@ -27,7 +27,8 @@
 #include <math.h>
 #include <ctype.h>
 #include <stdio.h>
-#include "debug.h"
+#include "makeutils.lib/debug.h"
+
 
 int __debug_spice__=2;
 
@@ -57,13 +58,13 @@ X1464  3  583  589  CKT6
 
 
 #ifndef __NETLIST_H__
-#include "netlist_dev.h"
+#include "netlist.lib/netlist_dev.h"
 #endif
 
 
 
 #ifndef __NETLIST_SPICE_H__
-#include "netlist_spice.h"
+#include "netlist.lib/netlist_spice.h"
 #endif
 
 tokenmap_t spice_tokens[]=SPICE_TOKENS;
@@ -135,7 +136,7 @@ static nodeclient_t *find_hashtab(hash_t *tab, uchar *str)
   return hash_find(tab,str-sizeof(hashload_t),sizeof(hashload_t)+l);
 }
 
-subckt_t CALLCONV *spice_find_subckt(subckt_t *parent, char *name)
+subckt_t *spice_find_subckt(subckt_t *parent, char *name)
 {
   nodeclient_t *tc;
   tc=find_hashtab(parent->cktdir,(uchar *)name);
@@ -143,7 +144,7 @@ subckt_t CALLCONV *spice_find_subckt(subckt_t *parent, char *name)
 }
 
 
-list_t CALLCONV spice_list_subckt(subckt_t *parent)
+list_t spice_list_subckt(subckt_t *parent)
 {
   list_t foo;
   subckt_t *ckt;
@@ -1394,7 +1395,7 @@ void spice_build(netlist_t *nl)
 }
 
 
-void CALLCONV spice_release(spice_t *sp)
+void spice_release(spice_t *sp)
 {
   if(sp!=NULL)
     {
@@ -1404,7 +1405,7 @@ void CALLCONV spice_release(spice_t *sp)
     }
 }
 
-spice_t CALLCONV *spice_new(scanner_t *scan)
+spice_t *spice_new(scanner_t *scan)
 {
   spice_t *p;
   p=malloc(sizeof(spice_t));
@@ -1433,7 +1434,7 @@ spice_t CALLCONV *spice_new(scanner_t *scan)
 
 
 
-void CALLCONV spice_debug(void * dbg_fp, spice_t *sp)
+void spice_debug(void * dbg_fp, spice_t *sp)
 {
   FILE *dbg=dbg_fp;
   fprintf(dbg,"debugging output for spice circuit file \n");

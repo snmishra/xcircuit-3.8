@@ -30,15 +30,15 @@
 
 
 #ifndef __LIST_H__
-#include "list.h"
+#include "struct.lib/list.h"
 #endif
 
 #ifndef __NAMES_H__
-#include "names.h"
+#include "struct.lib/names.h"
 #endif
 
 #ifndef __HASH_H__
-#include "hash.h"
+#include "struct.lib/hash.h"
 #endif
 
 

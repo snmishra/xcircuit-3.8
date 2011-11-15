@@ -44,9 +44,9 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
-#include "debug.h"
-#include "netlist_lib.h"
-#include "netlist_dev.h"
+#include "makeutils.lib/debug.h"
+#include "netlist.lib/netlist_lib.h"
+#include "netlist.lib/netlist_dev.h"
 
 int __debug_nlib__=1;
 

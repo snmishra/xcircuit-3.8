@@ -22,8 +22,8 @@
    Conrad Ziesler
 */
 
-#include "debug.h"
-#include "list_search.h"
+#include "makeutils.lib/debug.h"
+#include "struct.lib/list_search.h"
 
 void list_search_init(list_search_t *lp, int size, int mode)
 {

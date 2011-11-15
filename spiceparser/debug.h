@@ -31,9 +31,9 @@
 
 #include <assert.h>
 
-/* #ifndef CONFIGURED */
-/* #define  DEBUG */
-/* #endif */
+#ifndef CONFIGURED
+#define  DEBUG
+#endif
 
 
 #ifdef DEBUG

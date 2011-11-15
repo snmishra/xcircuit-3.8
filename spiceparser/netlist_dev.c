@@ -31,9 +31,9 @@
 */
 
 #include <stdio.h>
-#include "debug.h"
+#include "makeutils.lib/debug.h"
 
-#include "netlist_dev.h"
+#include "netlist.lib/netlist_dev.h"
 
 
 /* make a new device netlist, using client sizes as given 

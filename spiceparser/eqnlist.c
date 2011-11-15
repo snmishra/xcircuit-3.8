@@ -23,12 +23,12 @@
 */
 
 #include <stdio.h>
-#include "debug.h"
+#include "makeutils.lib/debug.h"
 
-#include "names.h"
-#include "list.h"
-#include "eqn.h"
-#include "bitlist.h"
+#include "struct.lib/names.h"
+#include "struct.lib/list.h"
+#include "equations.lib/eqn.h"
+#include "struct.lib/bitlist.h"
 
 
 

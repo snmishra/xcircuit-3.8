@@ -23,8 +23,8 @@
 */
 
 #include <stdio.h>
-#include "debug.h"
-#include "netlist_dev.h"
+#include "makeutils.lib/debug.h"
+#include "netlist.lib/netlist_dev.h"
 
 #define EVALfull(n,a)  eqnl_eval(&((n)->nl->eqnl),(a)) 
 #define EVALquick(n,a) eqn_getval_(&(a))

@@ -34,9 +34,9 @@
 
 #include <ctype.h>
 #include <stdio.h>
-#include "debug.h"
+#include "makeutils.lib/debug.h"
 
-#include "scanner.h"
+#include "parsers.lib/scanner.h"
 
 
 
@@ -203,7 +203,7 @@ void scanner_input_new(scanner_t *scan, file_spec_p file)
 
 
 
-void CALLCONV scanner_input_newfp(scanner_t *scan, void *fp)
+void scanner_input_newfp(scanner_t *scan, void *fp)
 {
   scanner_input_t *p; 
   p=malloc(sizeof(scanner_input_t));
@@ -269,7 +269,7 @@ void scanner_sect_release(scanner_t *scan)  /* release top of stack */
     }
 }
 
-void CALLCONV scanner_init(scanner_t *scan)
+void scanner_init(scanner_t *scan)
 {
   memory_init(&(scan->strmem));
   scan->sectp=NULL;
@@ -287,7 +287,7 @@ void scanner_free_all(scanner_t *scan)
   memory_freeall(&(scan->strmem));
 }
 
-void CALLCONV scanner_release(scanner_t *scan)
+void scanner_release(scanner_t *scan)
 {
   scanner_input_t *p,*np;
   
