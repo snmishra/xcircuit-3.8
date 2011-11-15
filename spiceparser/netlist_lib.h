@@ -23,11 +23,11 @@
 */
 
 #ifndef __EQN_H__
-#include "equations.lib/eqn.h"
+#include "eqn.h"
 #endif
 
 #ifndef __NETLIST_H__
-#include "netlist.lib/netlist.h"
+#include "netlist.h"
 #endif
 
 #ifndef __BITLIST_H__

@@ -33,7 +33,7 @@
    this allows any module to maintain private string 
    (or equations too) storage space that is leak-proof
 */
-#include "makeutils.lib/debug.h"
+#include "debug.h"
 
 #include "memory.h"
 

@@ -31,20 +31,20 @@ Conrad Ziesler
 
 
 #ifndef __LIST_H__
-#include "struct.lib/list.h"
+#include "list.h"
 #endif
 
 
 #ifndef __NAMES_H__
-#include "struct.lib/names.h"
+#include "names.h"
 #endif
 
 #ifndef __EQN_H__
-#include "equations.lib/eqn.h"
+#include "eqn.h"
 #endif
 
 #ifndef __SCANNER_H__
-#include "parsers.lib/scanner.h"
+#include "scanner.h"
 #endif
  
 #define __NETLIST_H__
@@ -269,12 +269,12 @@ void netlist_copyfree(netlist_t *nl);
 
 /********* netlist_spice.c *********/
 
-struct spice_st *spice_new(scanner_t *scan);
-void     spice_release(struct spice_st *sp);
+/* struct spice_st *spice_new(scanner_t *scan); */
+/* void     spice_release(struct spice_st *sp); */
 
-void     spice_build(netlist_t *nl);
-void     spice_count(netlist_t *nl);
-void     spice_debug(void *dbg_fp, struct spice_st *sp);
+/* void     spice_build(netlist_t *nl); */
+/* void     spice_count(netlist_t *nl); */
+/* void     spice_debug(void *dbg_fp, struct spice_st *sp); */
 
 
 

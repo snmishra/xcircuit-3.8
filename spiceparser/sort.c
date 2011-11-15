@@ -48,10 +48,10 @@
    Boston, MA 02111-1307, USA.  */
 
 
-#include "makeutils.lib/debug.h"
+#include "debug.h"
 
-#include "struct.lib/list.h"
-#include "struct.lib/list_search.h"
+#include "list.h"
+#include "list_search.h"
 
 
 /* Byte-wise swap two items of size SIZE. */

@@ -25,20 +25,21 @@
 /* note: alot of this is imported from legacy/adb 
          so it has some historic baggage still
 */
+#include "calling.h"
 
 #ifndef __NETLIST_SPICE_H__
 #define __NETLIST_SPICE_H__
 
 #ifndef __EQN_H__
-#include "equations.lib/eqn.h"
+#include "eqn.h"
 #endif
 
 #ifndef __HASH_H__
-#include "struct.lib/hash.h"
+#include "hash.h"
 #endif
 
 #ifndef __SCANNER_H__
-#include "parsers.lib/scanner.h"
+#include "scanner.h"
 #endif
 
 
@@ -276,11 +277,11 @@ typedef struct spice_st
 #define minimum(a,b)  (((a)<(b))?(a):(b))
 
 
-subckt_t *spice_find_subckt(subckt_t *parent, char *name);
-spice_t *spice_new(scanner_t *scan);
-void spice_release(spice_t *sp);
-void spice_debug(void * dbg_fp, spice_t *sp);
-list_t spice_list_subckt(subckt_t *parent);
+DECLSPEC subckt_t CALLCONV *spice_find_subckt(subckt_t *parent, char *name);
+DECLSPEC spice_t CALLCONV *spice_new(scanner_t *scan);
+DECLSPEC void CALLCONV spice_release(spice_t *sp);
+DECLSPEC void CALLCONV spice_debug(void * dbg_fp, spice_t *sp);
+DECLSPEC list_t CALLCONV spice_list_subckt(subckt_t *parent);
 
 
 
