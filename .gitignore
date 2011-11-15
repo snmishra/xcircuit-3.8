@@ -27,5 +27,6 @@ menudep.exe
 xcircexec.exe
 Makefile
 config.status
-
-
+*.dll
+*.pyc
+*.pxd
