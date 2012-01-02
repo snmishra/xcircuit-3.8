@@ -5848,7 +5848,7 @@ void finish_op(int op, int x, int y)
 #endif
 	 if (op != XCF_Cancel) {
 	    fscale = UDrawRescaleBox(&areawin->save);
-	    if (fscale > 0.0) elementrescale(fscale);
+	    if (fscale != 0.0) elementrescale(fscale);
 	 }
 	 eventmode = NORMAL_MODE;
 	 break;

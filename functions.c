@@ -2153,6 +2153,7 @@ float UDrawRescaleBox(XPoint *corner)
 	 if (!test_insideness((int)corner->x, (int)corner->y, newpoints))
 	    mindist = -mindist;
 	 if (refdist == mindist) refdist = 1 - mindist;
+	 if (rlab->scale < 0) rlab->scale = -rlab->scale;
 	 newscale = fabs(rlab->scale * (float)refdist / (float)(refdist + mindist));
 	 if (newscale > 10 * rlab->scale) newscale = 10 * rlab->scale;
 	 if (areawin->snapto) {
@@ -2162,9 +2163,10 @@ float UDrawRescaleBox(XPoint *corner)
 	    if (newscale < (1.0 / snapstep)) newscale = (1.0 / snapstep);
 	 }
 	 else if (newscale < 0.1 * rlab->scale) newscale = 0.1 * rlab->scale;
-	 rlab->scale = newscale;
+	 rlab->scale = (savescale < 0) ? -newscale : newscale;
 	 labelbbox(rlab, newpoints, areawin->topinstance);
 	 rlab->scale = savescale;
+	 if (savescale < 0) newscale = -newscale;
          break;
 
       case GRAPHIC:
@@ -2183,6 +2185,7 @@ float UDrawRescaleBox(XPoint *corner)
 	 if (!test_insideness((int)corner->x, (int)corner->y, newpoints))
 	    mindist = -mindist;
 	 if (refdist == mindist) refdist = 1 - mindist;  /* avoid inf result */
+	 if (rgraph->scale < 0) rgraph->scale = -rgraph->scale;
 	 newscale = fabs(rgraph->scale * (float)refdist / (float)(refdist + mindist));
 	 if (newscale > 10 * rgraph->scale) newscale = 10 * rgraph->scale;
 	 if (areawin->snapto) {
@@ -2192,9 +2195,10 @@ float UDrawRescaleBox(XPoint *corner)
 	    if (newscale < (1.0 / snapstep)) newscale = (1.0 / snapstep);
 	 }
 	 else if (newscale < 0.1 * rgraph->scale) newscale = 0.1 * rgraph->scale;
-	 rgraph->scale = newscale;
+	 rgraph->scale = (savescale < 0) ? -newscale : newscale;
 	 graphicbbox(rgraph, newpoints);
 	 rgraph->scale = savescale;
+	 if (savescale < 0) newscale = -newscale;
          break;
 
       case OBJINST:
@@ -2213,6 +2217,7 @@ float UDrawRescaleBox(XPoint *corner)
 	 if (!test_insideness((int)corner->x, (int)corner->y, newpoints))
 	    mindist = -mindist;
 	 if (refdist == mindist) refdist = 1 - mindist;  /* avoid inf result */
+	 if (rinst->scale < 0) rinst->scale = -rinst->scale;
 	 newscale = fabs(rinst->scale * (float)refdist / (float)(refdist + mindist));
 	 if (newscale > 10 * rinst->scale) newscale = 10 * rinst->scale;
 	 if (areawin->snapto) {
@@ -2222,9 +2227,10 @@ float UDrawRescaleBox(XPoint *corner)
 	    if (newscale < (1.0 / snapstep)) newscale = (1.0 / snapstep);
 	 }
 	 else if (newscale < 0.1 * rinst->scale) newscale = 0.1 * rinst->scale;
-	 rinst->scale = newscale;
+	 rinst->scale = (savescale < 0) ? -newscale : newscale;
 	 objinstbbox(rinst, newpoints, 0);
 	 rinst->scale = savescale;
+	 if (savescale < 0) newscale = -newscale;
          break;
    }
 
