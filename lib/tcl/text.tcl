@@ -99,7 +99,7 @@ proc xcircuit::textincrement {mode {amount 1}} {
 
 proc xcircuit::autoincr {{value 1}} {
    set e [eventmode]
-   if {$e != "text" && $e != "etext" } {
+   if {$e != "text" && $e != "etext" && $e != "epoly"} {
       if {[select] > 0} {
          xcircuit::textincrement selected $value
       } else {

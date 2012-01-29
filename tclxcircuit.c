@@ -979,7 +979,7 @@ int ParseElementArguments(Tcl_Interp *interp, int objc,
    int i, j, result, numobjs;
    pointertype ehandle;
    Tcl_Obj *lobj;
-   int extra = 0, badobjs = 0;
+   int extra = 0, goodobjs = 0;
 
    if (next != NULL) {
       extra = *next;
@@ -1003,6 +1003,7 @@ int ParseElementArguments(Tcl_Interp *interp, int objc,
 
          result = Tcl_ListObjLength(interp, objv[1], &numobjs);
          if (result != TCL_OK) return result;
+	 goodobjs = 0;
 
 	 /* Non-integer, non-list types: assume operation is to be applied */
 	 /* to currently selected elements, and return to caller.	   */
@@ -1014,13 +1015,29 @@ int ParseElementArguments(Tcl_Interp *interp, int objc,
 	       return TCL_OK;
 	    }
 	 }
-         unselect_all();
+	 if (numobjs == 0) {
+	    Tcl_SetResult(interp, "No elements.", NULL);
+	    return TCL_ERROR;
+	 }
+	 else
+	    newselect = (short *)malloc(numobjs * sizeof(short));
+
+	 /* Prepare a new selection, in case the new selection is	*/
+	 /* smaller than the original selection, but don't blanket	*/
+	 /* delete an existing selection, which will destroy cycle	*/
+	 /* information.						*/
 
 	 for (j = 0; j < numobjs; j++) {
             result = Tcl_ListObjIndex(interp, objv[1], j, &lobj);
-            if (result != TCL_OK) return result;
+            if (result != TCL_OK) {
+	       free(newselect);
+	       return result;
+	    }
 	    result = Tcl_GetHandleFromObj(interp, lobj, (void *)&ehandle);
-            if (result != TCL_OK) return result;
+            if (result != TCL_OK) {
+	       free(newselect);
+	       return result;
+	    }
 	    if (areawin->hierstack != NULL)
 	       i = GetPartNumber((genericptr)ehandle, 
 			areawin->hierstack->thisinst->thisobject, mask);
@@ -1030,20 +1047,29 @@ int ParseElementArguments(Tcl_Interp *interp, int objc,
             if (i == -1) {
 	       free_stack(&areawin->hierstack);
 	       Tcl_SetResult(interp, "No such element exists.", NULL);
+	       free(newselect);
 	       return TCL_ERROR;
             }
-	    else if (i == -2)
-	       badobjs++;
-	    else {
-               newselect = allocselect();
-               *newselect = i;
+	    else if (i >= 0) {
+               *(newselect + goodobjs) = i;
 	       if (next != NULL) *next = 2;
+	       goodobjs++;
 	    }
 	 }
-	 if (badobjs == numobjs) {
+	 if (goodobjs == 0) {
 	    Tcl_SetResult(interp, "No element matches required type.", NULL);
+	    unselect_all();
+	    free(newselect);
 	    return TCL_ERROR;
 	 }
+	 else if (goodobjs < numobjs) {
+	    unselect_all();
+	    areawin->selects = goodobjs;
+	    areawin->selectlist = newselect;
+	 }
+	 else
+	    free(newselect);
+
          draw_normal_selected(topobject, areawin->topinstance);
       }
       else if (next != NULL) *next = 2;
