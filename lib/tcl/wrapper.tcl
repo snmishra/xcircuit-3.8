@@ -1062,24 +1062,27 @@ proc xcircuit::make_parameter_listbox {} {
 }
 
 # Update the dialog box, if it has been left visible
+# (Corrected 2/4/12:  Don't delete contents except in these specific cases!)
 
 proc xcircuit::updatedialog {} {
    global XCOps
    if {[xcircuit::getinitstate .dialog] == "normal"} {
-      .dialog.textent.txt delete 0 end
-      set selects [xcircuit::select]
       switch -- $XCOps(dialog) {
  	 linewidth {
 	    set btext [format "%g" [lindex [xcircuit::border get] 0]]
+            .dialog.textent.txt delete 0 end
 	    .dialog.textent.txt insert 0 $btext
 	 }
 	 textscale {
 	    set cscale [xcircuit::label scale]
+            .dialog.textent.txt delete 0 end
 	    .dialog.textent.txt insert 0 $cscale
 	 }
 	 elementscale {
+            set selects [xcircuit::select]
 	    if {$selects > 0} {
 	       set cscale [xcircuit::element scale]
+               .dialog.textent.txt delete 0 end
 	       .dialog.textent.txt insert 0 $cscale
 	    }
 	 }
@@ -1531,6 +1534,9 @@ proc xcircuit::promptsavetech {} {
    xcircuit::addtechlist .dialog "Save which technology: " {(user)} true
    set fname ""
    catch {set fname [technology filename $XCOps(technology)]}
+   if {$fname == "(no associated file)"} {
+      set fname $XCOps(technology).lps
+   }
    .dialog.textent.txt insert 0 $fname
 }
 
