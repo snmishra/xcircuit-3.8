@@ -1131,7 +1131,7 @@ void pre_initialize()
    xobjs.pagelist[0]->wirewidth = 2.0;
    xobjs.pagelist[0]->outscale = 1.0;
    xobjs.pagelist[0]->background.name = (char *)NULL;
-   xobjs.pagelist[0]->pmode = 0;
+   xobjs.pagelist[0]->pmode = 2;	/* set auto-fit ON by default */
    xobjs.pagelist[0]->orient = 0;
    xobjs.pagelist[0]->gridspace = DEFAULTGRIDSPACE;
    xobjs.pagelist[0]->snapspace = DEFAULTSNAPSPACE;

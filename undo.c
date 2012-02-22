@@ -86,7 +86,7 @@ typedef struct {
    float scale;			/* old scale value */
 } scaleinfo;
 
-Boolean undo_collect = FALSE;
+u_char undo_collect = (u_char)0;
 
 /*----------------------------------------------------------------------*/
 /* Externally declared variables					*/
@@ -458,7 +458,7 @@ void register_for_undo(u_int type, u_char mode, objinstptr thisinst, ...)
    else
       newrecord->idx = 1;
 
-   if (mode == UNDO_MORE || undo_collect == TRUE)
+   if (mode == UNDO_MORE || undo_collect > (u_char)0)
       newrecord->idx = -newrecord->idx;
    
    xobjs.undostack = newrecord;
@@ -931,6 +931,7 @@ short undo_one_action()
 	 /* Revert selection to previously selected */
 	 select_previous(thisrecord);
 	 drawarea(areawin->area, NULL, NULL);
+	 draw_all_selected();
 	 break;
 
       case XCF_ChangeStyle:
@@ -1057,6 +1058,7 @@ short undo_one_action()
 	 placeselects(-(delta->x), -(delta->y), NULL);
 	 reset_cycles();
 	 drawarea(areawin->area, NULL, NULL);
+	 draw_all_selected();
 	 break;
 
        case XCF_Reorder:
@@ -1094,12 +1096,12 @@ short undo_one_action()
 /*	Complete a possibly incomplete undo series by forcing the	*/
 /*	topmost entry to have a positive index.				*/
 /*	Note that for "undo series start|end" to work, undo_collect	*/
-/*	must be set to FALSE prior to calling undo_finish_series().	*/
+/*	must be set to 0 prior to calling undo_finish_series().		*/
 /*----------------------------------------------------------------------*/
 
 void undo_finish_series()
 {
-   if (undo_collect == FALSE)
+   if (undo_collect == (u_char)0)
       if (xobjs.undostack && xobjs.undostack->idx < 0)
          xobjs.undostack->idx = -xobjs.undostack->idx;
 }

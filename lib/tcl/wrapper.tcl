@@ -136,12 +136,13 @@ proc xcircuit::new_window { name } {
   bind $drawing <Key-Next> {catch {page [expr {[page] + 1}]}}
   bind $drawing <Key-Prior> {catch {page [expr {[page] - 1}]}}
   bind $drawing <Control-Key-p> {xcircuit::prompteditparams}
-  bind $drawing <Key-bracketleft> {if {[select get] == {}} \
+
+  xcircuit::keybind <Key-bracketleft> {if {[select get] == {}} \
 		{select here; element lower; deselect} else {element lower}; \
-		refresh} 
-  bind $drawing <Key-bracketright> {if {[select get] == {}} \
+		refresh} $drawing
+  xcircuit::keybind <Key-bracketright> {if {[select get] == {}} \
 		{select here; element raise; deselect} else {element raise}; \
-		refresh}
+		refresh} $drawing
 
   # Bind numbers 1-9 and 0 so that they call the Tcl "page" command,
   # and so can take advantage of the tag callback to "pageupdate".
@@ -423,6 +424,31 @@ proc xcircuit::dolinks {} {
 
 #----------------------------------------------------------------------
 
+proc xcircuit::setlinksmenu {} {
+   set m .output.textent.butl.linksmenu
+   $m delete 0 end
+   $m add radio -label "None" -variable XCOps(links) -command \
+	{.output.textent.butl configure -text None ; \
+	xcircuit::page filename {}}
+   if {![catch {set plist [xcircuit::page list]}]} {
+      set fnames {}
+      foreach p $plist {
+         set pfile [xcircuit::page $p filename]
+	 if {"$pfile" != ""} {
+	    lappend fnames $pfile
+	 }
+      }
+      foreach f [lsort -uniq $fnames] {
+         $m add radio -label $f -variable XCOps(links) \
+		-command ".output.textent.butl configure -text $f ; \
+		xcircuit::page filename $f"
+      }
+   }
+   .output.textent.butl configure -text "(change)"
+}
+
+#----------------------------------------------------------------------
+
 proc xcircuit::pageupdate { {subcommand "none"} } {
    global XCOps
    if {[info level] <= 1} {
@@ -471,8 +497,9 @@ proc xcircuit::pageupdate { {subcommand "none"} } {
 	     .output.textent.buto configure -text Landscape
 	  }
 	  xcircuit::dolinks
+	  xcircuit::setlinksmenu
 
-	  set autofit [xcircuit::page fit]
+	  set XCOps(autofit) [xcircuit::page fit]
 	  if {[string match *.* $fname] == 0} {append fname .ps}
 	  if {[glob -nocomplain ${fname}] == {}} {
 	    .output.bbar.okay configure -text "Write File"
@@ -482,6 +509,7 @@ proc xcircuit::pageupdate { {subcommand "none"} } {
 	  .output.bbar.okay configure -command \
 		{.output.textent.but1 invoke; \
 		 .output.textent.but2 invoke; \
+		 if {$XCOps(autofit)} {xcircuit::page fit true}; \
 		 if {$XCOps(dmultiple) == 1} {xcircuit::page save} else { \
 		 xcircuit::page saveonly }; wm withdraw .output}
         }
@@ -857,6 +885,7 @@ label .output.textent.lab4 -text "Width:" -bg beige
 label .output.textent.lab5 -text "Height:" -bg beige
 label .output.textent.lab6 -text "Orientation:" -bg beige
 label .output.textent.lab7 -text "Mode:" -bg beige
+label .output.textent.lab8 -text "Link to:" -bg beige
 
 entry .output.textent.txt1 -bg white -relief sunken -width 20
 entry .output.textent.txt2 -bg white -relief sunken -width 20
@@ -868,6 +897,8 @@ menubutton .output.textent.buto -text Portrait -bg beige \
 	-menu .output.textent.buto.orientmenu
 menubutton .output.textent.butp -text "Embedded (EPS)" -bg beige \
 	-menu .output.textent.butp.psmenu
+menubutton .output.textent.butl -text "(change)" -bg beige \
+	-menu .output.textent.butl.linksmenu
 
 checkbutton .output.textent.butf -text "Auto-fit" -bg beige \
 	-variable XCOps(autofit) -onvalue true -offvalue false \
@@ -914,6 +945,7 @@ grid .output.textent.lab4 -row 3 -column 0 -sticky w
 grid .output.textent.lab5 -row 4 -column 0 -sticky w
 grid .output.textent.lab6 -row 5 -column 0 -sticky w
 grid .output.textent.lab7 -row 6 -column 0 -sticky w
+grid .output.textent.lab8 -row 7 -column 0 -sticky w
 
 grid .output.textent.txt1 -row 0 -column 1 -columnspan 2 -sticky ew -padx 10
 grid .output.textent.txt2 -row 1 -column 1 -columnspan 2 -sticky ew -padx 10
@@ -922,6 +954,7 @@ grid .output.textent.txt4 -row 3 -column 1 -columnspan 2 -sticky ew -padx 10
 grid .output.textent.txt5 -row 4 -column 1 -columnspan 2 -sticky ew -padx 10
 grid .output.textent.buto -row 5 -column 1 -sticky w -padx 10
 grid .output.textent.butp -row 6 -column 1 -sticky w -padx 10
+grid .output.textent.butl -row 7 -column 1 -sticky w -padx 10
 
 grid .output.textent.but1 -row 0 -column 3 -pady 5 -ipadx 10
 grid .output.textent.but2 -row 1 -column 3 -pady 5 -ipadx 10
@@ -947,11 +980,16 @@ $m add radio -label "Portrait" -variable XCOps(orient) -value 0 -command \
 $m add radio -label "Landscape" -variable XCOps(orient) -value 90 -command \
 	{.output.textent.buto configure -text Landscape ; \
 	xcircuit::page orientation 90}
+
 set m [menu .output.textent.butp.psmenu -tearoff 0]
 $m add radio -label "Embedded (EPS)" -variable XCOps(pstype) -value eps -command \
 	{xcircuit::setpstype eps}
 $m add radio -label "Full Page" -variable XCOps(pstype) -value full -command \
 	{xcircuit::setpstype full}
+
+menu .output.textent.butl.linksmenu -tearoff 0
+xcircuit::setlinksmenu
+
 pack .output.bbar.okay -side left -ipadx 10
 pack .output.bbar.cancel -side right -ipadx 10
 
