@@ -307,6 +307,7 @@ Boolean library_object_unique(short, objectptr, objlistptr);
 void add_object_to_library(short, objectptr);
 u_char *find_delimiter(u_char *);
 char standard_delimiter_end(char);
+void output_graphic_data(FILE *, short *);
 
 extern Boolean CompareTechnology(objectptr, char *);
 extern TechPtr LookupTechnology(char *);

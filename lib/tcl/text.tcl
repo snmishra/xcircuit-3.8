@@ -55,13 +55,14 @@ proc text_regexp {searchstr replacestr {mode all}} {
 #
 # example:   xcircuit::textincrement selected
 
-proc xcircuit::textincrement {mode {amount 1}} {
+proc xcircuit::textincrement {mode {amount 1} {position first}} {
    switch -glob -- $mode {
       select* {set handle [select get]; set resel 1}
       default {deselect selected; set handle [object parts]; set resel 0}
    }
    config suspend true
    undo series start
+   
    foreach h $handle {
       if {[element $h type] == "Label"} {
          set tlist [join [label $h list]]
@@ -71,21 +72,37 @@ proc xcircuit::textincrement {mode {amount 1}} {
             set esc [lindex $t 0]
             if {$esc == "Text"} {
 	       set ltext [lindex $t 1]
-	       if {[regexp {([+-]?)([0]*)([[:digit:]]+)} $ltext lmatch pre zer num]} {
-	          if {$num != ""} {
-		     set num $pre$num
-	             incr num $amount
-		     if {$num < 0} {
-		        set num [expr abs($num)]
-		        set pre "-"
-		     }
-		     if {$num == 0 && "$pre" == "-"} {set pre ""}
-	             regsub {[+-]?[0]*[[:digit:]]+} $ltext $pre$zer$num ltext
-	             set t [lreplace $t 1 1 $ltext]
-	             set tlist [lreplace $tlist $i $i $t]
-	             label $h replace $tlist
-	             break
+	       set idx 0
+	       if {"$position" == "last"} {
+	          set result [regexp -indices -all {([+-]?)[0]*[[:digit:]]+} \
+				$ltext lmatch bounds]
+		  set idx [lindex $bounds 0]
+		  if {$result > 0} {
+	             regexp -start $idx {([+-]?)([0]*)([[:digit:]]+)} $ltext \
+				lmatch pre zer num
+	          }
+	       } else {
+	          set result [regexp {([+-]?)([0]*)([[:digit:]]+)} $ltext \
+				lmatch pre zer num]
+	       }
+		  
+	       if {$result > 0 && $num != ""} {
+		  set num $pre$num
+	          incr num $amount
+		  if {$num < 0} {
+		     set num [expr abs($num)]
+		     set pre "-"
 		  }
+		  if {$num == 0 && "$pre" == "-"} {set pre ""}
+		  if {"$position" == "last"} {
+	             regsub -start $idx {[+-]?[0]*[[:digit:]]+} $ltext $pre$zer$num ltext
+		  } else {
+	             regsub {[+-]?[0]*[[:digit:]]+} $ltext $pre$zer$num ltext
+		  }
+	          set t [lreplace $t 1 1 $ltext]
+	          set tlist [lreplace $tlist $i $i $t]
+	          label $h replace $tlist
+	          break
 	       }
 	    }
 	 }
@@ -97,11 +114,21 @@ proc xcircuit::textincrement {mode {amount 1}} {
    config suspend false
 }
 
-proc xcircuit::autoincr {{value 1}} {
+proc xcircuit::autoincr {{value 1} {position first}} {
    set e [eventmode]
-   if {$e != "text" && $e != "etext" } {
+   set nopreselect 0
+   if {$e != "text" && $e != "etext" && $e != "epoly"} {
+      if {[select] == 0} {
+	 set nopreselect 1
+	 undo series start
+	 select here
+      }
       if {[select] > 0} {
-         xcircuit::textincrement selected $value
+         xcircuit::textincrement selected $value $position
+	 if {$nopreselect} {
+	    deselect
+	    undo series end
+	 }
       } else {
 	 error "no selection"
       }
@@ -161,12 +188,20 @@ proc xcircuit::maketextmod {} {
 
    button .textmod.numeric.incr -text "Increment" -bg beige -command \
         {xcircuit::textincrement [.textmod.title.type cget -text] \
-	[.textmod.numeric.amount get]}
+	[.textmod.numeric.amount get] [.textmod.numeric.pos cget -text]}
    button .textmod.numeric.decr -text "Decrement" -bg beige -command \
         {xcircuit::textincrement [.textmod.title.type cget -text] \
-	[expr -[.textmod.numeric.amount get]]}
+	[expr -[.textmod.numeric.amount get]] [.textmod.numeric.pos cget -text]}
    label .textmod.numeric.title1 -text "Amount: " -bg beige
    entry .textmod.numeric.amount -bg white
+
+   menubutton .textmod.numeric.pos -text "first" -bg beige \
+	-menu .textmod.numeric.pos.posmenu
+   menu .textmod.numeric.pos.posmenu -tearoff 0
+   .textmod.numeric.pos.posmenu add command -label "first" -command \
+	{.textmod.numeric.pos configure -text "first"}
+   .textmod.numeric.pos.posmenu add command -label "last" -command \
+	{.textmod.numeric.pos configure -text "last"}
 
    .textmod.numeric.amount insert 0 "1"
 
@@ -174,6 +209,7 @@ proc xcircuit::maketextmod {} {
    pack .textmod.numeric.decr -side left -ipadx 10 -padx 10
    pack .textmod.numeric.title1 -side left
    pack .textmod.numeric.amount -side left
+   pack .textmod.numeric.pos -side left
 }
 
 proc xcircuit::textmod {} {

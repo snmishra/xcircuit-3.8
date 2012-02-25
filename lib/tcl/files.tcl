@@ -42,7 +42,14 @@ proc xcircuit::writeall {} {
 	    set firstpage [lindex $pagelist 0]
 	    set pageno [${firstpage} cget -text]
 	    if {$pageno == "-" || $pageno == "X"} {
-	       technology save [.writeall.list.f${i} cget -text]
+	       set tname [.writeall.list.f${i} cget -text]
+	       set fname [technology filename $tname]
+	       if {$fname == "(no associated file)"} {
+		  # Fix me:  this works only on one technology at a time!
+		  xcircuit::promptsavetech
+	       } else {
+	          technology save $tname
+	       }
 	    } else {
 	       page ${pageno} save
 	    }

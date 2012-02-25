@@ -4198,33 +4198,59 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
             graphicptr *newgp;
 	    Imagedata *img;
 
-	    NEW_GRAPHIC(newgp, localdata);
-	    (*newgp)->color = curcolor;
-	    (*newgp)->passed = NULL;
-	    (*newgp)->clipmask = (Pixmap)NULL;
-	    (*newgp)->target = NULL;
-	    (*newgp)->valid = False;
-
 	    lineptr = buffer + 1;
 	    for (i = 0; i < xobjs.images; i++) {
 	       img = xobjs.imagelist + i;
 	       if (!strncmp(img->filename, lineptr, strlen(img->filename))) {
+		  NEW_GRAPHIC(newgp, localdata);
+		  (*newgp)->color = curcolor;
+		  (*newgp)->passed = NULL;
+		  (*newgp)->clipmask = (Pixmap)NULL;
+		  (*newgp)->target = NULL;
+		  (*newgp)->valid = False;
 		  (*newgp)->source = img->image;
 		  img->refcount++;
+		  lineptr += strlen(img->filename) + 1;
 		  break;
 	       }
 	    }
-	    lineptr += strlen(img->filename) + 1;
+	    if (i == xobjs.images) {
+	       /* Error:  Line points to a non-existant image (no data) */
+	       /* See if we can load the image name as a filename, and	*/
+	       /* if that fails, then we must throw an error and ignore	*/
+	       /* the image element.					*/
 
-	    lineptr = varfscan(localdata, lineptr, &(*newgp)->scale,
+	       graphicptr locgp;
+	       char *sptr = strchr(lineptr, ' ');
+
+	       if (sptr != NULL)
+		  *sptr = '\0';
+	       else
+		  sptr = lineptr;
+	       locgp = new_graphic(NULL, lineptr, 0, 0);
+
+	       if (locgp == NULL) {
+	          Fprintf(stderr, "Error:  No graphic data for \"%s\".\n",
+			lineptr);
+		  newgp = NULL;
+	       }
+	       else {
+		  lineptr = sptr;
+		  newgp = &locgp;
+	       }
+	    }
+
+	    if ((newgp != NULL) && (*newgp != NULL)) {
+	       lineptr = varfscan(localdata, lineptr, &(*newgp)->scale,
 				(genericptr)*newgp, P_SCALE);
-	    lineptr = varscan(localdata, lineptr, &(*newgp)->rotation,
+	       lineptr = varscan(localdata, lineptr, &(*newgp)->rotation,
 				(genericptr)*newgp, P_ROTATION);
-	    lineptr = varpscan(localdata, lineptr, &(*newgp)->position.x,
+	       lineptr = varpscan(localdata, lineptr, &(*newgp)->position.x,
 				(genericptr)*newgp, 0, offx, P_POSITION_X);
-	    lineptr = varpscan(localdata, lineptr, &(*newgp)->position.y,
+	       lineptr = varpscan(localdata, lineptr, &(*newgp)->position.y,
 				(genericptr)*newgp, 0, offy, P_POSITION_Y);
-	    std_eparam((genericptr)(*newgp), colorkey);
+	       std_eparam((genericptr)(*newgp), colorkey);
+	    }
 	 }
 
          /* read labels */
@@ -4909,6 +4935,7 @@ void savetechnology(char *technology, char *outname)
    genericptr *gptr;
    liblistptr spec;
    short written;
+   short *glist;
    char *uname = NULL;
    char *hostname = NULL;
    struct passwd *mypwentry = NULL;
@@ -5020,6 +5047,22 @@ void savetechnology(char *technology, char *outname)
 
    fprintf(ps, "\n%% XCircuitLib library objects\n");
 
+   /* Start by looking for any graphic images in the library objects	*/
+   /* and saving the graphic image data at the top of the file.		*/
+
+   glist = (short *)malloc(xobjs.images * sizeof(short));
+   for (i = 0; i < xobjs.images; i++) glist[i] = 0;
+
+   for (ilib = 0; ilib < xobjs.numlibs; ilib++) {
+      for (spec = xobjs.userlibs[ilib].instlist; spec != NULL; spec = spec->next) {
+	 libobjptr = spec->thisinst->thisobject;
+         if (CompareTechnology(libobjptr, technology))
+	    count_graphics(spec->thisinst->thisobject, glist);
+      }
+   }
+   output_graphic_data(ps, glist);
+   free(glist);
+
    /* list of library objects already written */
 
    wroteobjs = (objectptr *)realloc(wroteobjs, sizeof(objectptr));
@@ -5097,6 +5140,121 @@ void findfonts(objectptr writepage, short *fontsused) {
       else if (IS_OBJINST(*dfp)) {
 	 findfonts(TOOBJINST(dfp)->thisobject, fontsused);
       }
+   }
+}
+
+/*------------------------------------------------------*/
+/* Write graphics image data to file "ps".  "glist" is	*/
+/* a pointer to a vector of short integers, each one	*/
+/* being an index into xobjs.images for an image that	*/
+/* is to be output.					*/
+/*------------------------------------------------------*/
+ 
+void output_graphic_data(FILE *ps, short *glist)
+{
+   char *fptr, ascbuf[6];
+   int i, j;
+   for (i = 0; i < xobjs.images; i++) {
+      Imagedata *img = xobjs.imagelist + i;
+      int ilen, flen, k, m = 0, n, q = 0;
+      u_char *filtbuf, *flatebuf;
+      Boolean lastpix = False;
+      union {
+	u_long i;
+	u_char b[4];
+      } pixel;
+
+      if (glist[i] == 0) continue;
+
+      fprintf(ps, "%%imagedata %d %d\n", img->image->width, img->image->height);
+      fprintf(ps, "currentfile /ASCII85Decode filter ");
+
+#ifdef HAVE_LIBZ
+      fprintf(ps, "/FlateDecode filter\n");
+#endif
+
+      fprintf(ps, "/ReusableStreamDecode filter\n");
+
+      /* creating a stream buffer is wasteful if we're just using ASCII85	*/
+      /* decoding but is a must for compression filters. 			*/
+
+      ilen = 3 * img->image->width * img->image->height;
+      filtbuf = (u_char *)malloc(ilen + 4);
+      q = 0;
+      for (j = 0; j < img->image->height; j++) {
+	 for (k = 0; k < img->image->width; k++) {
+	    pixel.i = XGetPixel(img->image, k, j);
+	    filtbuf[q++] = (u_char)pixel.b[2];
+	    filtbuf[q++] = (u_char)pixel.b[1];
+	    filtbuf[q++] = (u_char)pixel.b[0];
+	 }
+      }
+      for (j = 0; j < 4; j++)
+	 filtbuf[q++] = 0;
+
+      /* Extra encoding goes here */
+#ifdef HAVE_LIBZ
+      flen = ilen * 2;
+      flatebuf = (char *)malloc(flen);
+      ilen = large_deflate(flatebuf, flen, filtbuf, ilen);
+      free(filtbuf);
+#else
+      flatebuf = filtbuf;
+#endif
+	    
+      ascbuf[5] = '\0';
+      for (j = 0; j < ilen; j += 4) {
+	 if ((j + 4) > ilen) lastpix = TRUE;
+	 if (!lastpix && (flatebuf[j] + flatebuf[j + 1] + flatebuf[j + 2]
+			+ flatebuf[j + 3] == 0)) {
+	    fprintf(ps, "z");
+	    m++;
+	 }
+	 else {
+	    for (n = 0; n < 4; n++)
+	       pixel.b[3 - n] = flatebuf[j + n];
+
+	    ascbuf[0] = '!' + (pixel.i / 52200625);
+	    pixel.i %= 52200625;
+	    ascbuf[1] = '!' + (pixel.i / 614125);
+	    pixel.i %= 614125;
+	    ascbuf[2] = '!' + (pixel.i / 7225);
+	    pixel.i %= 7225;
+	    ascbuf[3] = '!' + (pixel.i / 85);
+	    pixel.i %= 85;
+	    ascbuf[4] = '!' + pixel.i;
+	    if (lastpix)
+	       for (n = 0; n < ilen + 1 - j; n++)
+	          fprintf(ps, "%c", ascbuf[n]);
+	    else
+	       fprintf(ps, "%5s", ascbuf);
+	    m += 5;
+	 }
+	 if (m > 75) {
+	    fprintf(ps, "\n");
+	    m = 0;
+	 }
+      }
+      fprintf(ps, "~>\n");
+      free(flatebuf);
+
+      /* Remove any filesystem path information from the image name.	*/
+      /* Otherwise, the slashes will cause PostScript to err.		*/
+
+      fptr = strrchr(img->filename, '/');
+      if (fptr == NULL)
+	 fptr = img->filename;
+      else
+	 fptr++;
+      fprintf(ps, "/%sdata exch def\n", fptr);
+      fprintf(ps, "/%s <<\n", fptr);
+      fprintf(ps, "  /ImageType 1 /Width %d /Height %d /BitsPerComponent 8\n",
+		img->image->width, img->image->height);
+      fprintf(ps, "  /MultipleDataSources false\n");
+      fprintf(ps, "  /Decode [0 1 0 1 0 1]\n");
+      fprintf(ps, "  /ImageMatrix [1 0 0 -1 %d %d]\n",
+		(img->image->width >> 1), (img->image->height >> 1));
+      fprintf(ps, "  /DataSource %sdata >> def\n\n", fptr);
    }
 }
 
@@ -5338,109 +5496,7 @@ void savefile(short mode)
    /* Write out all of the images used */
 
    glist = collect_graphics(pagelist);
-
-   for (i = 0; i < xobjs.images; i++) {
-      Imagedata *img = xobjs.imagelist + i;
-      int ilen, flen, k, m = 0, n, q = 0;
-      u_char *filtbuf, *flatebuf;
-      Boolean lastpix = False;
-      union {
-	u_long i;
-	u_char b[4];
-      } pixel;
-
-      if (glist[i] == 0) continue;
-
-      fprintf(ps, "%%imagedata %d %d\n", img->image->width, img->image->height);
-      fprintf(ps, "currentfile /ASCII85Decode filter ");
-
-#ifdef HAVE_LIBZ
-      fprintf(ps, "/FlateDecode filter\n");
-#endif
-
-      fprintf(ps, "/ReusableStreamDecode filter\n");
-
-      /* creating a stream buffer is wasteful if we're just using ASCII85	*/
-      /* decoding but is a must for compression filters. 			*/
-
-      ilen = 3 * img->image->width * img->image->height;
-      filtbuf = (u_char *)malloc(ilen + 4);
-      q = 0;
-      for (j = 0; j < img->image->height; j++) {
-	 for (k = 0; k < img->image->width; k++) {
-	    pixel.i = XGetPixel(img->image, k, j);
-	    filtbuf[q++] = (u_char)pixel.b[2];
-	    filtbuf[q++] = (u_char)pixel.b[1];
-	    filtbuf[q++] = (u_char)pixel.b[0];
-	 }
-      }
-      for (j = 0; j < 4; j++)
-	 filtbuf[q++] = 0;
-
-      /* Extra encoding goes here */
-#ifdef HAVE_LIBZ
-      flen = ilen * 2;
-      flatebuf = (char *)malloc(flen);
-      ilen = large_deflate(flatebuf, flen, filtbuf, ilen);
-      free(filtbuf);
-#else
-      flatebuf = filtbuf;
-#endif
-	    
-      ascbuf[5] = '\0';
-      for (j = 0; j < ilen; j += 4) {
-	 if ((j + 4) > ilen) lastpix = TRUE;
-	 if (!lastpix && (flatebuf[j] + flatebuf[j + 1] + flatebuf[j + 2]
-			+ flatebuf[j + 3] == 0)) {
-	    fprintf(ps, "z");
-	    m++;
-	 }
-	 else {
-	    for (n = 0; n < 4; n++)
-	       pixel.b[3 - n] = flatebuf[j + n];
-
-	    ascbuf[0] = '!' + (pixel.i / 52200625);
-	    pixel.i %= 52200625;
-	    ascbuf[1] = '!' + (pixel.i / 614125);
-	    pixel.i %= 614125;
-	    ascbuf[2] = '!' + (pixel.i / 7225);
-	    pixel.i %= 7225;
-	    ascbuf[3] = '!' + (pixel.i / 85);
-	    pixel.i %= 85;
-	    ascbuf[4] = '!' + pixel.i;
-	    if (lastpix)
-	       for (n = 0; n < ilen + 1 - j; n++)
-	          fprintf(ps, "%c", ascbuf[n]);
-	    else
-	       fprintf(ps, "%5s", ascbuf);
-	    m += 5;
-	 }
-	 if (m > 75) {
-	    fprintf(ps, "\n");
-	    m = 0;
-	 }
-      }
-      fprintf(ps, "~>\n");
-      free(flatebuf);
-
-      /* Remove any filesystem path information from the image name.	*/
-      /* Otherwise, the slashes will cause PostScript to err.		*/
-
-      fptr = strrchr(img->filename, '/');
-      if (fptr == NULL)
-	 fptr = img->filename;
-      else
-	 fptr++;
-      fprintf(ps, "/%sdata exch def\n", fptr);
-      fprintf(ps, "/%s <<\n", fptr);
-      fprintf(ps, "  /ImageType 1 /Width %d /Height %d /BitsPerComponent 8\n",
-		img->image->width, img->image->height);
-      fprintf(ps, "  /MultipleDataSources false\n");
-      fprintf(ps, "  /Decode [0 1 0 1 0 1]\n");
-      fprintf(ps, "  /ImageMatrix [1 0 0 -1 %d %d]\n",
-		(img->image->width >> 1), (img->image->height >> 1));
-      fprintf(ps, "  /DataSource %sdata >> def\n\n", fptr);
-   }
+   output_graphic_data(ps, glist);
    free(glist);
 
    for (curpage = 0; curpage < xobjs.pages; curpage++) {

@@ -5823,19 +5823,21 @@ void finish_op(int op, int x, int y)
 	 else {
 	    if (areawin->selects > 0) {
 	       register_for_undo(XCF_Move, 
-			(was_preselected) ? UNDO_DONE : UNDO_MORE,
+			// (was_preselected) ? UNDO_DONE : UNDO_MORE,
+			UNDO_MORE,
 			areawin->topinstance,
 			(int)(areawin->save.x - areawin->origin.x),
 			(int)(areawin->save.y - areawin->origin.y));
 	       pwriteback(areawin->topinstance);
 	       incr_changes(topobject);
 	       select_invalidate_netlist();
+	       unselect_all();		// The way it used to be. . .
 	    }
 	    W3printf("");
 	    /* full calc needed: move may shrink bbox */
 	    calcbbox(areawin->topinstance);
 	    checkoverlap();
-	    if (!was_preselected) clearselects();
+	    // if (!was_preselected) clearselects();
 	 }
 	 areawin->attachto = -1;
 	 break;
@@ -5848,7 +5850,7 @@ void finish_op(int op, int x, int y)
 #endif
 	 if (op != XCF_Cancel) {
 	    fscale = UDrawRescaleBox(&areawin->save);
-	    if (fscale > 0.0) elementrescale(fscale);
+	    if (fscale != 0.0) elementrescale(fscale);
 	 }
 	 eventmode = NORMAL_MODE;
 	 break;

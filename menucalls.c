@@ -247,9 +247,13 @@ void autoscale(int page)
    int width, height;
    polyptr framebox;
 
+   /* Check if auto-fit flag is selected */
    if (!(xobjs.pagelist[page]->pmode & 2)) return;
+   /* Ignore auto-fit flag in EPS mode */
+   if (!(xobjs.pagelist[page]->pmode & 1)) return;
+
    else if (topobject->bbox.width == 0 || topobject->bbox.height == 0) {
-      Wprintf("Cannot auto-fit empty page");
+      // Wprintf("Cannot auto-fit empty page");
       return;
    }
 
@@ -478,7 +482,12 @@ void setosize(xcWidget w, objinstptr dataptr)
    objinstptr nsobj;
    int res = sscanf(_STR2, "%f", &tmpres);
 
-   if (res == 0 || tmpres <= 0) {
+   // Negative values are flips---deal with them independently
+
+   if (tmpres < 0)
+      tmpres = -tmpres;
+
+   if (res == 0 || tmpres == 0) {
       Wprintf("Illegal value");
       return;
    }
@@ -487,7 +496,7 @@ void setosize(xcWidget w, objinstptr dataptr)
       if (SELECTTYPE(osel) == OBJINST) {
 	 nsobj = SELTOOBJINST(osel);
 	 oldsize = nsobj->scale;
-         nsobj->scale = tmpres;
+         nsobj->scale = (oldsize < 0) ? -tmpres : tmpres;
 
          if (oldsize != tmpres) {
             register_for_undo(XCF_Rescale, UNDO_MORE, areawin->topinstance,
