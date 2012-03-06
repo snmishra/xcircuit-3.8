@@ -55,7 +55,7 @@ extern keybinding *keylist;
 extern Boolean spice_end;
 extern short flstart;
 extern int pressmode;
-extern Boolean undo_collect;
+extern u_char undo_collect;
 
 #ifdef OPENGL
 GLXContext	grXcontext;
@@ -1062,13 +1062,27 @@ int ParseElementArguments(Tcl_Interp *interp, int objc,
 	    free(newselect);
 	    return TCL_ERROR;
 	 }
-	 else if (goodobjs < numobjs) {
-	    unselect_all();
-	    areawin->selects = goodobjs;
-	    areawin->selectlist = newselect;
+	 else {
+	    selection aselect, bselect;
+
+	    /* To avoid unnecessarily blasting the existing selection	*/
+	    /* and its cycles, we compare the two selection lists.	*/
+	    /* This is not an excuse for not fixing the selection list	*/
+	    /* mess in general!						*/
+
+	    aselect.selectlist = newselect;
+	    aselect.selects = goodobjs;
+	    bselect.selectlist = areawin->selectlist;
+	    bselect.selects = areawin->selects;
+	    if (compareselection(&aselect, &bselect)) {
+	       free(newselect);
+	    }
+	    else {
+	       unselect_all();
+	       areawin->selects = goodobjs;
+	       areawin->selectlist = newselect;
+	    }
 	 }
-	 else
-	    free(newselect);
 
          draw_normal_selected(topobject, areawin->topinstance);
       }
@@ -2488,6 +2502,9 @@ int xctcl_delete(ClientData clientData, Tcl_Interp *interp,
 }
 
 /*----------------------------------------------------------------------*/
+/* Note that when using "undo series", it is the responsibility of the	*/
+/* caller to make sure that every "start" is matched by an "end".	*/
+/*----------------------------------------------------------------------*/
 
 int xctcl_undo(ClientData clientData, Tcl_Interp *interp,
 	int objc, Tcl_Obj *CONST objv[])
@@ -2495,14 +2512,18 @@ int xctcl_undo(ClientData clientData, Tcl_Interp *interp,
    if ((objc == 3) && !strcmp(Tcl_GetString(objv[1]), "series")) {
 
       if (!strcmp(Tcl_GetString(objv[2]), "start")) {
-	 undo_collect = TRUE;
+	 undo_collect++;
       }
       else if (!strcmp(Tcl_GetString(objv[2]), "end")) {
-	 undo_collect = FALSE;
+	 undo_collect--;
+	 undo_finish_series();
+      }
+      else if (!strcmp(Tcl_GetString(objv[2]), "cancel")) {
+	 undo_collect = (u_char)0;
 	 undo_finish_series();
       }
       else {
-         Tcl_SetResult(interp, "Usage: undo series <start|end>", NULL);
+         Tcl_SetResult(interp, "Usage: undo series <start|end|cancel>", NULL);
          return TCL_ERROR;
       }
    }
@@ -6808,7 +6829,8 @@ int xctcl_promptquit(ClientData clientData, Tcl_Interp *interp,
       Tcl_WrongNumArgs(interp, 1, objv, "(no arguments)");
       return TCL_ERROR;
    }
-   quitcheck(areawin->area, NULL, NULL);
+   if (areawin != NULL)
+      quitcheck(areawin->area, NULL, NULL);
    return XcTagCallback(interp, objc, objv);
 }
 
@@ -6958,13 +6980,13 @@ int xctcl_page(ClientData clientData, Tcl_Interp *interp,
    Boolean forcepage = FALSE;
 
    char *subCmds[] = {
-	"load", "import", "save", "saveonly", "make", "directory",
+	"load", "list", "import", "save", "saveonly", "make", "directory",
 	"reset", "links", "fit", "filename", "label", "scale", "width",
 	"height", "size", "margins", "bbox", "goto", "orientation",
 	"encapsulation", "handle", "changes", NULL
    };
    enum SubIdx {
-	LoadIdx, ImportIdx, SaveIdx, SaveOnlyIdx, MakeIdx, DirIdx,
+	LoadIdx, ListIdx, ImportIdx, SaveIdx, SaveOnlyIdx, MakeIdx, DirIdx,
 	ResetIdx, LinksIdx, FitIdx, FileIdx, LabelIdx, ScaleIdx,
 	WidthIdx, HeightIdx, SizeIdx, MarginsIdx, BBoxIdx, GoToIdx,
 	OrientIdx, EPSIdx, HandleIdx, ChangesIdx
@@ -6983,6 +7005,10 @@ int xctcl_page(ClientData clientData, Tcl_Interp *interp,
    };
    char *psTypes[] = {"eps", "full", NULL};
 
+   if (areawin == NULL) {
+      Tcl_SetResult(interp, "No database!", NULL);
+      return TCL_ERROR;
+   }
    savepage = areawin->page;
 
    /* Check for option "-force" (create page if it doesn't exist) */
@@ -7035,6 +7061,18 @@ int xctcl_page(ClientData clientData, Tcl_Interp *interp,
       case ResetIdx:
 	 /* clear page */
 	 resetbutton(NULL, (pointertype)(pageno + 1), NULL);
+	 break;
+
+      case ListIdx:
+	 /* return a list of all non-empty pages */
+	 objPtr = Tcl_NewListObj(0, NULL);
+	 for (i = 0; i < xobjs.pages; i++) {
+	     lpage = xobjs.pagelist[i];
+	     if ((lpage != NULL) && (lpage->pageinst != NULL)) {
+	        Tcl_ListObjAppendElement(interp, objPtr, Tcl_NewIntObj(i + 1));
+	     }
+	 }
+	 Tcl_SetObjResult(interp, objPtr);
 	 break;
 
       case LoadIdx:
@@ -7555,8 +7593,6 @@ int xctcl_page(ClientData clientData, Tcl_Interp *interp,
 	 }
 	 curpage->pmode &= 0x2;			/* preserve auto-fit flag */
 	 curpage->pmode |= (short)newmode;
-	 if (curpage->pmode == 2)
-	    curpage->pmode = 0;	   /* auto-fit does not apply to EPS mode */
 	 break;
 
       case LabelIdx:

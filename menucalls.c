@@ -247,9 +247,13 @@ void autoscale(int page)
    int width, height;
    polyptr framebox;
 
+   /* Check if auto-fit flag is selected */
    if (!(xobjs.pagelist[page]->pmode & 2)) return;
+   /* Ignore auto-fit flag in EPS mode */
+   if (!(xobjs.pagelist[page]->pmode & 1)) return;
+
    else if (topobject->bbox.width == 0 || topobject->bbox.height == 0) {
-      Wprintf("Cannot auto-fit empty page");
+      // Wprintf("Cannot auto-fit empty page");
       return;
    }
 
