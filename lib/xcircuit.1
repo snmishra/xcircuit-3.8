@@ -97,11 +97,11 @@ arrows, circles, power and ground symbols, and the like.  This file
 is a composite of several library files (such as "builtins.lps",
 "analog.lps", and "digital.lps") which are called by the startup
 script
-("xcstartup.tcl")
+("startup.script")
 The program first looks for the startup script in
 the current directory, and then searches in the directory given by
 the environment variable "XCIRCUIT_LIB_DIR", and finally, in the
-hard-coded global directory (/usr/local/lib) if it could not find it elsewhere.
+hard-coded global directory (/home/tim/cad/lib) if it could not find it elsewhere.
 Thus each user can add to or modify the file of builtins to reflect
 personal taste.  Since the PostScript output contains all object
 definitions, these changes to the built-in functions are inherently
@@ -789,12 +789,54 @@ is first searched for in the current directory, and then
 in the user's home directory as defined by the environment
 variable $HOME.
 
+Commands are:
+.TP 6
+.B library \fIlibname\fP
+Loads a library named \fIlibname\fP (with or without .lps
+extension) into the set of built-in objects.
+.TP 6
+.B override default library
+Causes the default libraries defined in "builtins.lps"
+\fInot\fP to be loaded.
+.TP 6
+.B override default colors
+Causes the default colors \fInot\fP to be loaded; this will
+not override the allocation of black and white, however,
+for obvious reasons.
+.TP 6
+.B font \fIfontname\fP
+Adds a font named \fIfontname\fP (as recognized by a
+printer) to the menu of selectable fonts.
+.TP 6 
+.B color \fIcolorname\fP
+Adds a color named \fIcolorname\fP (standard X11
+conventions) to the menu of selectable colors.
+.TP 6
+.B set \fItype\fP \fIvalue\fP
+Sets internal xcircuit variables, where \fItype\fP can be one of:
+.sp
+\fBboxedit\fP
+.sp
+Where \fIvalue\fP is one of "manhattan", "rhomboid-x", "rhomboid-y",
+or "normal".  Determines the default way manhattan-aligned polygon
+edges are manupulated during edits.
+.sp
+\fBlinewidth\fP
+.sp
+Where \fIvalue\fP is a real number indicating the default
+width of lines.
+.sp
+\fBbeep\fP
+.sp
+Where \fIvalue\fP can be \fBon\fP or \fBoff\fP, depending on 
+whether or not you want the machine beeping at you when it
+gives critical warnings.
+.sp
+\fBcolorscheme\fP
+.sp
+Where \fIvalue\fP is \fBinverse\fP to swap the two color schemes
+and make the second scheme appear as default.
 
-The startup file is written in Tcl.  The command-line interface can
-be found in the online documentation on the website
-.sp
-\fBhttp://www.opencircuitdesign.com/xcircuit/\fP.
-.sp
 
 .SH CRASH RECOVERY
 XCircuit implements a crash recovery system by which a copy of the current
@@ -1017,13 +1059,13 @@ ways (in .xcircuitrc or by the XCIRCUIT_LIB_DIR environment variable),
 but by default is:
 .sp
 .TP 28
-.B /usr/local/lib
+.B /home/tim/cad/lib
 .sp
 .TP 15 
 .B xcircps2.pro
 PostScript prolog appended to each file
 .TP 15 
-.B xcstartup.tcl
+.B startup.script
 This startup script contains commands of the type
 \fBlibrary\fP \fIname\fP \fInumber\fP
 which cause the designated library \fIname\fP to be immediately loaded
