@@ -1567,8 +1567,8 @@ void poly_edit_op(int op)
 	    UDrawPolygon(lwire, xobjs.pagelist[areawin->page]->wirewidth);
 	    if (lwire->number == 3 && !(lwire->style & UNCLOSED)) 
 	       lwire->style |= UNCLOSED;
-	    lwire->number--;
 	    cycle = checkcycle((genericptr)lwire, 0);
+	    lwire->number--;
 	    for (lpoint = lwire->points + cycle; lpoint <
 			lwire->points + lwire->number; lpoint++)
 	       *lpoint = *(lpoint + 1);
