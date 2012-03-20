@@ -1,6 +1,14 @@
 xcircuit
 config.cache
+config.status
 config.log
+menudep
+spiceparser/Makefile
+xcircexec
+menudep.h
+lib/xcircuit.1
+lib/tcl/xcircuit.sh
+lib/tcl/xcircuit.tcl
 *.o
 *.so
 *~
