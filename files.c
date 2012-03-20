@@ -2552,8 +2552,10 @@ void readlabel(objectptr localdata, char *lineptr, stringpart **strhead)
             newpart->type = HALFSPACE;
          else if (!strncmp(cmdptr, "qS", 2))
             newpart->type = QTRSPACE;
-         else if (!strncmp(cmdptr, "CR", 2))
+         else if (!strncmp(cmdptr, "CR", 2)) {
 	    newpart->type = RETURN;
+	    newpart->data.flags = 0;
+	 }
          else if (!strcmp(cmdptr, "Ts")) /* "Tab set" command */
 	    newpart->type = TABSTOP;
          else if (!strcmp(cmdptr, "Tf")) /* "Tab forward" command */
@@ -4347,6 +4349,7 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 	    if (!strncmp(lineptr, "mark", 4)) lineptr += 4;
 
 	    readlabel(localdata, lineptr, &(*newlabel)->string);
+	    CheckMarginStop(*newlabel, areawin->topinstance, FALSE);
 
 	    if (version < 2.25) {
 	       /* Switch 1st scale designator to overall font scale */
@@ -5797,7 +5800,11 @@ char *writesegment(stringpart *chrptr, float *lastscale, int *lastfont, int *mar
 	 break;
       case RETURN:
 	 *lastscale = 1.0;
-	 sprintf(_STR, "{CR} ");
+	 if (chrptr->data.flags == 0)
+	    // Ignore automatically-generated line breaks
+	    sprintf(_STR, "{CR} ");
+	 else
+	    sprintf(_STR, "");
 	 break;
       case TABSTOP:
 	 sprintf(_STR, "{Ts} ");

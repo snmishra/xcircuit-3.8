@@ -958,6 +958,7 @@ extern int find_ordinal(int, labelptr, objinstptr);
 extern short UDrawChar(u_char, short, short, int, int, float);
 extern void UDrawString(labelptr, int, objinstptr);
 extern void UDrawStringNoX(labelptr, int, objinstptr);
+extern void CheckMarginStop(labelptr, objinstptr, Boolean);
 extern TextExtents ULength(labelptr, objinstptr, short, XPoint *);
 extern void undrawtext(labelptr);
 extern void redrawtext(labelptr);

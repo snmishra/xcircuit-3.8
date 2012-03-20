@@ -3413,12 +3413,16 @@ void edit(int x, int y)
 		(*lastlabel)->scale, (*lastlabel)->rotation);
             tmpext = ULength(*lastlabel, areawin->topinstance, 0, NULL);
 	    tmppt.x += ((*lastlabel)->justify & NOTLEFT ?
-		((*lastlabel)->justify & RIGHT ? tmpext.width : tmpext.width >> 1) : 0);
+		((*lastlabel)->justify & RIGHT ? tmpext.maxwidth
+		: tmpext.maxwidth >> 1) : 0);
 	    tmppt.y += ((*lastlabel)->justify & NOTBOTTOM ?
 		((*lastlabel)->justify & TOP ? tmpext.ascent :
 		(tmpext.ascent + tmpext.base) >> 1) : tmpext.base);
 	    if ((*lastlabel)->pin)
 	       pinadjust((*lastlabel)->justify, &tmppt.x, NULL, -1);
+
+	    // Where tbreak is passed to ULength, the character position,
+	    // not the dimension, is held in tmpext.width field.
             tmpext = ULength(*lastlabel, areawin->topinstance, 0, &tmppt);
 	    areawin->textpos = tmpext.width;
 	 }

@@ -1432,7 +1432,7 @@ void UDrawString0(labelptr drawlabel, int passcolor, objinstptr localinst,
    tmpext = ULength(drawlabel, localinst, 0, NULL);
 
    newpoint.x = (tmpjust & NOTLEFT ?
-       (tmpjust & RIGHT ? -tmpext.width : -tmpext.width >> 1) : 0);
+       (tmpjust & RIGHT ? -tmpext.maxwidth : -tmpext.maxwidth >> 1) : 0);
    newpoint.y = (tmpjust & NOTBOTTOM ?
        (tmpjust & TOP ? -tmpext.ascent : -(tmpext.ascent + tmpext.base) >> 1)
 		: -tmpext.base);
@@ -1694,7 +1694,8 @@ TextExtents ULength(labelptr drawlabel, objinstptr localinst,
    short tabno, numtabs = 0;
    int marginstop = 0;
 
-   retext.width = retext.ascent = retext.descent = retext.base = 0;
+   retext.ascent = retext.descent = retext.base = 0;
+   retext.width = retext.maxwidth = 0;
 
    if (fontcount == 0) return retext;
 
@@ -1727,8 +1728,7 @@ TextExtents ULength(labelptr drawlabel, objinstptr localinst,
 	    natscale = strscale = oldscale;
 	    ykern = 0.0;
 	    retext.base -= BASELINE;
-	    if (!dostop)
-	       retext.width = max(retext.width, xtotal);
+	    retext.maxwidth = max(retext.width, xtotal);
 	    xtotal = 0.5;
 	    break;
 	 case HALFSPACE: 
@@ -1838,39 +1838,39 @@ TextExtents ULength(labelptr drawlabel, objinstptr localinst,
       return retext;
    }
    retext.width = max(retext.width, xtotal);
+   retext.maxwidth = max(retext.maxwidth, xtotal);
    return retext;
 }
 
 /*----------------------------------------------------------------------*/
-/* Remove all RETURN directives following a MARGINSTOP (except when	*/
-/* there is more than one RETURN in a row, keep only one of them)	*/
+/* Remove all RETURN directives following a MARGINSTOP.  Automatically	*/
+/* generated line breaks are identified by an nonzero "flags" field.	*/
 /*----------------------------------------------------------------------*/
 
 void RemoveMarginNewlines(labelptr settext, objinstptr localinst)
 {
    stringpart *strptr, *nextptr;
-   int margin = 0;
+   int strpos = 0;
 
    for (strptr = settext->string; strptr != NULL;
 		strptr = nextstringpart(strptr, localinst)) {
       switch (strptr->type) {
-	 case MARGINSTOP:
-	    margin = strptr->data.width;
-	    break;
-
 	 case RETURN:
-	    if (margin > 0) {
-	        
-	       // If there are multiple returns, skip over all but the
-	       // last one.
-	       while (1) {
-	          nextptr = nextstringpart(strptr, localinst);
-		  if (nextptr && nextptr->type != RETURN) break;
-		  strptr = nextptr;
-	       }
+	    if (strptr->data.flags != 0) {
 	       // Remove
 	       strptr = deletestring(strptr, &settext->string, localinst);
+	       if (strpos <= areawin->textpos) areawin->textpos--;
 	    }
+	    else strpos++;
+	    break;
+
+	 case TEXT_STRING:
+	    if (strptr->data.string)
+	       strpos += strlen(strptr->data.string);
+	    break;
+
+	 default:
+	    strpos++;
 	    break;
       }
    }
@@ -1889,7 +1889,70 @@ void InsertMarginNewlines(labelptr settext, objinstptr localinst)
 {
    stringpart *strptr;
    int margin = 0;
+   int strpos = 0, locpos, tmplen, slen;
    TextExtents tmpext;
+
+   /* 1) Find the position of the margin stop.  Track position	*/
+   /* in string a la findstringpart(), as we need to pass this	*/
+   /* to ULength()						*/
+
+   for (strptr = settext->string; strptr != NULL;
+		strptr = nextstringpart(strptr, localinst)) {
+      switch (strptr->type) {
+	 case MARGINSTOP:
+	    margin = strptr->data.width;
+	    strpos++;
+	    break;
+
+	 case TEXT_STRING:
+	    if (strptr->data.string)
+	       strpos += strlen(strptr->data.string);
+	    break;
+
+	 default:
+	    strpos++;
+	    break;
+      }
+      if (margin > 0) break;
+   }
+   if (margin == 0) return;	// Should not happen. . .
+
+   /* 2) Compute the drawn string length at each word break.  When a	*/
+   /*    word overruns the margin, place a line break in front of it.	*/
+
+   while (1) {
+      strptr = findstringpart(strpos, &locpos, settext->string, localinst);
+      if (strptr == NULL) break;
+      else if (strptr->type == TEXT_STRING) {
+	 slen = strlen(strptr->data.string);
+	 /* Ignore trailing spaces */
+	 while ((slen > 0) && (*(strptr->data.string + slen - 1) == ' ')) slen--;
+         tmpext = ULength(settext, localinst, strpos + slen, NULL);
+	 if (tmpext.maxwidth > margin) {
+            while ((slen > 0) && (tmpext.maxwidth > margin)) {
+	       while ((slen > 0) && (*(strptr->data.string + slen - 1) != ' ')) slen--;
+	       while ((slen > 0) && (*(strptr->data.string + slen - 1) == ' ')) slen--;
+	       tmpext = ULength(settext, localinst, strpos + slen - 1, NULL);
+	    }
+	    if (slen > 0) {
+	       // Split string at word separation before the margin
+	       while ((slen > 0) && (*(strptr->data.string + slen) == ' ')) slen++;
+	       strptr = splitstring(strpos + slen, &settext->string, localinst);
+	       strptr = nextstringpart(strptr, localinst);
+	    }
+	    // Insert a carriage return
+	    strptr = makesegment(&settext->string, strptr);
+	    strptr->type = RETURN;
+	    strptr->data.flags = 1;	/* Mark as auto-generated line wrap */
+	    if (areawin->textpos > strpos) areawin->textpos++;
+	    strpos += slen;
+	 }
+	 else
+	    strpos += strlen(strptr->data.string);
+      }
+      else
+         strpos++;
+   }
 }
 
 /*----------------------------------------------------------------------*/
@@ -1899,7 +1962,7 @@ void InsertMarginNewlines(labelptr settext, objinstptr localinst)
 /* text stays within the margin.					*/
 /*----------------------------------------------------------------------*/
 
-void CheckMarginStop(labelptr settext, objinstptr localinst)
+void CheckMarginStop(labelptr settext, objinstptr localinst, Boolean force)
 {
    stringpart *strptr;
    int margin = 0;
@@ -1916,7 +1979,7 @@ void CheckMarginStop(labelptr settext, objinstptr localinst)
    }
    if (margin > 0) {
       tmpext = ULength(settext, localinst, 0, NULL);
-      if (tmpext.width > margin) {
+      if ((force == TRUE) || (tmpext.maxwidth > margin)) {
 	 RemoveMarginNewlines(settext, localinst);
 	 InsertMarginNewlines(settext, localinst);
       }

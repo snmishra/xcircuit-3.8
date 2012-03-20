@@ -723,7 +723,9 @@ Tcl_Obj *TclGetStringParts(stringpart *thisstring)
 			Tcl_NewStringObj("Tab Backward", 12));
 	    break;
 	 case RETURN:
-	    Tcl_ListObjAppendElement(xcinterp, lstr,
+	    // Don't show automatically interted line breaks
+	    if (strptr->data.flags == 0)
+	       Tcl_ListObjAppendElement(xcinterp, lstr,
 			Tcl_NewStringObj("Return", 6));
 	    break;
 	 case SUBSCRIPT:

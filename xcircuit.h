@@ -249,7 +249,7 @@ typedef struct {
 } XlPoint;
 
 typedef struct {
-   short width, ascent, descent, base;
+   short width, maxwidth, ascent, descent, base;
 } TextExtents;
 
 /*----------------------------------------------------------------------*/
@@ -606,6 +606,7 @@ typedef struct _stringpart {
      int	color;
      int	font;
      int	width;
+     int	flags;
      float	scale;
      short	kern[2];
    }		data;

@@ -4,6 +4,9 @@ config.status
 config.log
 menudep
 spiceparser/Makefile
+asg/Makefile
+Xw/Makefile
+Makefile
 xcircexec
 menudep.h
 lib/xcircuit.1

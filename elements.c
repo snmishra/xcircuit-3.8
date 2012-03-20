@@ -824,6 +824,10 @@ Boolean labeltext(int keypressed, char *clientdata)
       newpart = makesegment(&curlabel->string, curpos);
       newpart->type = keypressed;
       switch (keypressed) {
+	 case RETURN:
+	    // Identify this as an explicitly placed line break
+	    newpart->data.flags = 0;
+	    break;
 	 case FONT_SCALE:
 	    newpart->data.scale = *((float *)clientdata);
 	    break;
@@ -840,8 +844,9 @@ Boolean labeltext(int keypressed, char *clientdata)
 	    if (newpart->data.font >= fontcount) errcond = True;
 	    break;
 	 case MARGINSTOP:
-	    tmpext = ULength(curlabel, areawin->topinstance, curpos, NULL);
+	    tmpext = ULength(curlabel, areawin->topinstance, areawin->textpos, NULL);
 	    newpart->data.width = (int)tmpext.width;
+	    CheckMarginStop(curlabel, areawin->topinstance, FALSE);
 	    break;
 	 case PARAM_START:
 	    newpart->data.string = (char *)malloc(1 + strlen(clientdata));
@@ -916,6 +921,9 @@ Boolean labeltext(int keypressed, char *clientdata)
    /* Redraw the label */
 
    if (do_redraw) {
+      /* Generate automatic line breaks if there is a MARGINSTOP directive */
+      CheckMarginStop(curlabel, areawin->topinstance, TRUE);
+
       XcSetFunction(GXcopy);
       redrawtext(curlabel);
    }

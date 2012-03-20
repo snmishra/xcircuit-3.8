@@ -617,7 +617,7 @@ void SVGDrawString(labelptr drawlabel, int passcolor, objinstptr localinst)
    tmpext = ULength(drawlabel, localinst, 0, NULL);
 
    newpoint.x = (tmpjust & NOTLEFT ?
-       (tmpjust & RIGHT ? -tmpext.width : -tmpext.width >> 1) : 0);
+       (tmpjust & RIGHT ? -tmpext.maxwidth : -tmpext.maxwidth >> 1) : 0);
    newpoint.y = (tmpjust & NOTBOTTOM ?
        (tmpjust & TOP ? -tmpext.ascent : -(tmpext.ascent + tmpext.base) >> 1)
 		: -tmpext.base);
