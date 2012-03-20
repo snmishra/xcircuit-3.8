@@ -702,6 +702,14 @@ Tcl_Obj *TclGetStringParts(stringpart *thisstring)
 	       Tcl_ListObjAppendElement(xcinterp, lstr, sdict);
 	    }
 	    break;
+	 case MARGINSTOP:
+	    sdict = Tcl_NewListObj(0, NULL);
+	    Tcl_ListObjAppendElement(xcinterp, sdict,
+			Tcl_NewStringObj("Margin Stop", 11));
+	    Tcl_ListObjAppendElement(xcinterp, sdict,
+			Tcl_NewIntObj((int)strptr->data.width));
+	    Tcl_ListObjAppendElement(xcinterp, lstr, sdict);
+	    break;
 	 case TABSTOP:
 	    Tcl_ListObjAppendElement(xcinterp, lstr,
 			Tcl_NewStringObj("Tab Stop", 8));
@@ -769,14 +777,14 @@ int GetXCStringFromList(Tcl_Interp *interp, Tcl_Obj *list, stringpart **rstring)
 
    static char *partTypes[] = {"Text", "Subscript", "Superscript",
 	"Normalscript", "Underline", "Overline", "No Line", "Tab Stop",
-	"Tab Forward", "Tab Backward", "Half Space", "Quarter Space", "Return",
-	"Font", "Font Scale", "Color", "Kern", "Parameter", "End Parameter",
-	"Special", NULL};
+	"Tab Forward", "Tab Backward", "Margin Stop", "Half Space",
+	"Quarter Space", "Return", "Font", "Font Scale", "Color", "Kern",
+	"Parameter", "End Parameter", "Special", NULL};
 
    static int partTypesIdx[] = {TEXT_STRING, SUBSCRIPT, SUPERSCRIPT,
 	NORMALSCRIPT, UNDERLINE, OVERLINE, NOLINE, TABSTOP, TABFORWARD,
-	TABBACKWARD, HALFSPACE, QTRSPACE, RETURN, FONT_NAME, FONT_SCALE,
-	FONT_COLOR, KERN, PARAM_START, PARAM_END, SPECIAL};
+	TABBACKWARD, MARGINSTOP, HALFSPACE, QTRSPACE, RETURN, FONT_NAME,
+	FONT_SCALE, FONT_COLOR, KERN, PARAM_START, PARAM_END, SPECIAL};
 
    /* No place to put result! */
    if (rstring == NULL) return TCL_ERROR;
@@ -854,6 +862,11 @@ int GetXCStringFromList(Tcl_Interp *interp, Tcl_Obj *list, stringpart **rstring)
 	    result = Tcl_GetDoubleFromObj(interp, tobj, &fscale);
 	    if (result != TCL_OK) return result;
 	    newpart->data.scale = (float)fscale;
+	    break;
+	 case MARGINSTOP:
+	    result = Tcl_GetIntFromObj(interp, tobj, &ival);
+	    if (result != TCL_OK) return result;
+	    newpart->data.width = ival;
 	    break;
 	 case KERN:
 	    result = Tcl_ListObjLength(interp, tobj, &numparts);
@@ -4017,10 +4030,12 @@ int xctcl_label(ClientData clientData, Tcl_Interp *interp,
 	TextIdx, LaTeXIdx, ListIdx, ReplaceIdx, PositionIdx
    };
 
+   /* These must match the order of string part types defined in xcircuit.h */
    static char *subsubCmds[] = {"text", "subscript", "superscript",
 	"normalscript", "underline", "overline", "noline", "stop",
-	"forward", "backward", "halfspace", "quarterspace", "return",
-	"name", "scale", "color", "kern", "parameter", "special", NULL};
+	"forward", "backward", "margin", "halfspace", "quarterspace",
+	"return", "name", "scale", "color", "kern", "parameter",
+	"special", NULL};
 
    static char *pinTypeNames[] = {"normal", "text", "local", "pin", "global",
 	"info", "netlist", NULL};

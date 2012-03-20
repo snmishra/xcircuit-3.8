@@ -532,7 +532,7 @@ static char *nonprint[] = {
 	"Text", "Subscript", "Superscript", "Normalscript",
 	"Underline", "Overline", "Noline",
 	"Tab_Stop", "Tab_Forward", "Tab_Backward",
-	"Halfspace", "Quarterspace", "<Return>",
+	"Margin_Stop", "Halfspace", "Quarterspace", "<Return>",
 	"Font", "Scale", "Color", "Kern", 
         "Parameter", ">", "Net_Name", "Error", NULL}; /* (jdk) */
 
@@ -1397,6 +1397,7 @@ void UDrawString0(labelptr drawlabel, int passcolor, objinstptr localinst,
    TextExtents tmpext;
    short *tabstops = NULL;
    short tabno, numtabs = 0;
+   int   marginstop = 0;
 
    if (fontcount == 0) return;
 
@@ -1536,6 +1537,7 @@ void UDrawString0(labelptr drawlabel, int passcolor, objinstptr localinst,
 	        tabstops[numtabs - 1] = newpoint.x;
 		break;
 
+	     case MARGINSTOP:
 	     case RETURN:
 		tmpscale = natscale = 1.0;
 		baseline -= BASELINE;
@@ -1690,6 +1692,7 @@ TextExtents ULength(labelptr drawlabel, objinstptr localinst,
    TextExtents retext;
    short *tabstops = NULL;
    short tabno, numtabs = 0;
+   int marginstop = 0;
 
    retext.width = retext.ascent = retext.descent = retext.base = 0;
 
@@ -1719,6 +1722,7 @@ TextExtents ULength(labelptr drawlabel, objinstptr localinst,
 	    natscale = strscale = oldscale;
 	    ykern = 0.0;
 	    break;
+	 case MARGINSTOP:
 	 case RETURN:
 	    natscale = strscale = oldscale;
 	    ykern = 0.0;
@@ -1797,6 +1801,7 @@ TextExtents ULength(labelptr drawlabel, objinstptr localinst,
 	    }
 
 	    if (somebet == NULL) break;
+
 	    for (; textptr && *textptr != '\0'; textptr++) {
                if (dostop && (locpos >= dostop)) break;
 	       locpos++;
@@ -1834,6 +1839,88 @@ TextExtents ULength(labelptr drawlabel, objinstptr localinst,
    }
    retext.width = max(retext.width, xtotal);
    return retext;
+}
+
+/*----------------------------------------------------------------------*/
+/* Remove all RETURN directives following a MARGINSTOP (except when	*/
+/* there is more than one RETURN in a row, keep only one of them)	*/
+/*----------------------------------------------------------------------*/
+
+void RemoveMarginNewlines(labelptr settext, objinstptr localinst)
+{
+   stringpart *strptr, *nextptr;
+   int margin = 0;
+
+   for (strptr = settext->string; strptr != NULL;
+		strptr = nextstringpart(strptr, localinst)) {
+      switch (strptr->type) {
+	 case MARGINSTOP:
+	    margin = strptr->data.width;
+	    break;
+
+	 case RETURN:
+	    if (margin > 0) {
+	        
+	       // If there are multiple returns, skip over all but the
+	       // last one.
+	       while (1) {
+	          nextptr = nextstringpart(strptr, localinst);
+		  if (nextptr && nextptr->type != RETURN) break;
+		  strptr = nextptr;
+	       }
+	       // Remove
+	       strptr = deletestring(strptr, &settext->string, localinst);
+	    }
+	    break;
+      }
+   }
+}
+
+/*----------------------------------------------------------------------*/
+/* Analyze a text label and insert RETURN directives as necessary to	*/
+/* keep the text within the width limit set by MARGIN.  Break up text	*/
+/* at word boundaries where necessary.  This routine is run only when	*/
+/* (1) editing a text label or loading one from a file, and (2) the	*/
+/* text label both contains a MARGIN directive and exceeds the margin	*/
+/* width, as determined by CheckMarginStop().  				*/
+/*----------------------------------------------------------------------*/
+
+void InsertMarginNewlines(labelptr settext, objinstptr localinst)
+{
+   stringpart *strptr;
+   int margin = 0;
+   TextExtents tmpext;
+}
+
+/*----------------------------------------------------------------------*/
+/* Check a string for presence of a MARGINSTOP directive.  If it has	*/
+/* one, check if ULength exceeds the margin.  If so, remove all Return	*/
+/* directives after the MARGINSTOP, and re-insert them such that the	*/
+/* text stays within the margin.					*/
+/*----------------------------------------------------------------------*/
+
+void CheckMarginStop(labelptr settext, objinstptr localinst)
+{
+   stringpart *strptr;
+   int margin = 0;
+   TextExtents tmpext;
+
+   for (strptr = settext->string; strptr != NULL;
+		strptr = nextstringpart(strptr, localinst)) {
+      switch (strptr->type) {
+	 case MARGINSTOP:
+	    margin = strptr->data.width;
+	    break;
+      }
+      if (margin > 0) break;
+   }
+   if (margin > 0) {
+      tmpext = ULength(settext, localinst, 0, NULL);
+      if (tmpext.width > margin) {
+	 RemoveMarginNewlines(settext, localinst);
+	 InsertMarginNewlines(settext, localinst);
+      }
+   }
 }
 
 /*----------------------------------------------------------------------*/

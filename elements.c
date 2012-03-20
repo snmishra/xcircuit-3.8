@@ -839,6 +839,10 @@ Boolean labeltext(int keypressed, char *clientdata)
 	    newpart->data.font = *((int *)clientdata);
 	    if (newpart->data.font >= fontcount) errcond = True;
 	    break;
+	 case MARGINSTOP:
+	    tmpext = ULength(curlabel, areawin->topinstance, curpos, NULL);
+	    newpart->data.width = (int)tmpext.width;
+	    break;
 	 case PARAM_START:
 	    newpart->data.string = (char *)malloc(1 + strlen(clientdata));
 	    strcpy(newpart->data.string, clientdata);

@@ -2464,6 +2464,7 @@ proc xcircuit::makemenus {window} {
    $m2 add command -label "Tab stop" -command "xcircuit::label insert stop"
    $m2 add command -label "Tab forward" -command "xcircuit::label insert forward"
    $m2 add command -label "Tab backward" -command "xcircuit::label insert backward"
+   $m2 add command -label "Margin stop" -command "xcircuit::label insert margin"
    $m2 add command -label "Carriage Return" -command "xcircuit::label insert return"
    $m2 add command -label "1/2 space" -command "xcircuit::label insert halfspace"
    $m2 add command -label "1/4 space" -command "xcircuit::label insert quarterspace"

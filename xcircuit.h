@@ -376,28 +376,29 @@ enum loadmodes {IMPORT = 1, PSBKGROUND, SCRIPT, RECOVER,
 #define TABSTOP	 	 7  /* insert tab stop position			*/
 #define TABFORWARD 	 8  /* insert tab stop position			*/
 #define TABBACKWARD 	 9  /* insert tab stop position			*/
-#define HALFSPACE	10  /* insert half-space; no data		*/
-#define QTRSPACE	11  /* insert quarter space; no data		*/
-#define RETURN		12  /* carriage-return character; no data	*/
-#define FONT_NAME       13  /* inline font designator; data = font name */
-#define FONT_SCALE	14  /* font scale change; data = scale		*/
-#define FONT_COLOR	15  /* font color change; data = color		*/
-#define KERN		16  /* set new kern values; data = kern x, y	*/
-#define PARAM_START	17  /* bounds a parameter; data = param key	*/
-#define PARAM_END	18  /* bounds a parameter; no data 		*/
+#define MARGINSTOP	10  /* declare a width limit for the text	*/
+#define HALFSPACE	11  /* insert half-space; no data		*/
+#define QTRSPACE	12  /* insert quarter space; no data		*/
+#define RETURN		13  /* carriage-return character; no data	*/
+#define FONT_NAME       14  /* inline font designator; data = font name */
+#define FONT_SCALE	15  /* font scale change; data = scale		*/
+#define FONT_COLOR	16  /* font color change; data = color		*/
+#define KERN		17  /* set new kern values; data = kern x, y	*/
+#define PARAM_START	18  /* bounds a parameter; data = param key	*/
+#define PARAM_END	19  /* bounds a parameter; no data 		*/
 
 /* Actions translated to keystates (numbering continues from above) */
 
-#define TEXT_RETURN	19
-#define TEXT_HOME	20
-#define TEXT_END	21
-#define TEXT_SPLIT	22
-#define TEXT_DOWN	23
-#define TEXT_UP		24
-#define TEXT_LEFT	25
-#define TEXT_RIGHT	26
-#define TEXT_DELETE	27
-#define TEXT_DEL_PARAM	28
+#define TEXT_RETURN	20
+#define TEXT_HOME	21
+#define TEXT_END	22
+#define TEXT_SPLIT	23
+#define TEXT_DOWN	24
+#define TEXT_UP		25
+#define TEXT_LEFT	26
+#define TEXT_RIGHT	27
+#define TEXT_DELETE	28
+#define TEXT_DEL_PARAM	29
 
 #define SPECIAL		63  /* used only when called from menu		*/
 #define NULL_TYPE	255 /* used as a placeholder			*/
@@ -604,6 +605,7 @@ typedef struct _stringpart {
      u_char	*string;
      int	color;
      int	font;
+     int	width;
      float	scale;
      short	kern[2];
    }		data;
@@ -1313,7 +1315,7 @@ enum {
    XCF_SPICE /* 104 */,		XCF_PCB /* 105 */,
    XCF_SPICEflat /* 106 */,	XCF_Rescale /* 107 */,		
    XCF_Reorder /* 108 */,	XCF_Color /* 109 */,
-   XCF_Text_Delete_Param /* 110 */,
+   XCF_Margin_Stop /* 110 */,	XCF_Text_Delete_Param /* 111 */,
    NUM_FUNCTIONS
 };
 
