@@ -5638,7 +5638,7 @@ int printRGBvalues(char *tstr, int index, const char *postfix)
 char *nosprint(char *baseptr, int *margin, int *extsegs)
 {
    int qtmp, slen = 100;
-   char *sptr, *lptr = NULL, lsave;
+   char *sptr, *lptr = NULL, lsave, *sptr2;
    u_char *pptr, *qptr, *bptr;
 
    bptr = (u_char *)malloc(slen);	/* initial length 100 */
@@ -5651,9 +5651,18 @@ char *nosprint(char *baseptr, int *margin, int *extsegs)
 	 if (sptr == NULL)
 	    sptr = baseptr;
 	 else {
-	    sptr++;
-	    if (*sptr == '\0')
-	       sptr = baseptr;
+	    if (*(sptr + 1) == '\0') {
+	       while (*sptr == ' ') sptr--;
+	       *(sptr + 1) = '\0';
+	       sptr2 = strrchr(baseptr, ' ');
+	       *(sptr + 1) = ' ';
+	       if (sptr2 == NULL)
+		  sptr = baseptr;
+	       else
+		  sptr = sptr2 + 1;
+	    }
+	    else
+	       sptr++;
 	 }
       }
       else
@@ -5701,7 +5710,7 @@ char *nosprint(char *baseptr, int *margin, int *extsegs)
 	 lptr = sptr;
 	 lsave = *lptr;
 	 *lptr = '\0';
-	 *extsegs++;
+	 (*extsegs)++;
       }
    }
 

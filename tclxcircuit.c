@@ -779,14 +779,14 @@ int GetXCStringFromList(Tcl_Interp *interp, Tcl_Obj *list, stringpart **rstring)
 
    static char *partTypes[] = {"Text", "Subscript", "Superscript",
 	"Normalscript", "Underline", "Overline", "No Line", "Tab Stop",
-	"Tab Forward", "Tab Backward", "Margin Stop", "Half Space",
-	"Quarter Space", "Return", "Font", "Font Scale", "Color", "Kern",
+	"Tab Forward", "Tab Backward", "Half Space", "Quarter Space",
+	"Return", "Font", "Font Scale", "Color", "Margin Stop", "Kern",
 	"Parameter", "End Parameter", "Special", NULL};
 
    static int partTypesIdx[] = {TEXT_STRING, SUBSCRIPT, SUPERSCRIPT,
 	NORMALSCRIPT, UNDERLINE, OVERLINE, NOLINE, TABSTOP, TABFORWARD,
-	TABBACKWARD, MARGINSTOP, HALFSPACE, QTRSPACE, RETURN, FONT_NAME,
-	FONT_SCALE, FONT_COLOR, KERN, PARAM_START, PARAM_END, SPECIAL};
+	TABBACKWARD, HALFSPACE, QTRSPACE, RETURN, FONT_NAME, FONT_SCALE,
+	FONT_COLOR, MARGINSTOP, KERN, PARAM_START, PARAM_END, SPECIAL};
 
    /* No place to put result! */
    if (rstring == NULL) return TCL_ERROR;
@@ -4035,8 +4035,8 @@ int xctcl_label(ClientData clientData, Tcl_Interp *interp,
    /* These must match the order of string part types defined in xcircuit.h */
    static char *subsubCmds[] = {"text", "subscript", "superscript",
 	"normalscript", "underline", "overline", "noline", "stop",
-	"forward", "backward", "margin", "halfspace", "quarterspace",
-	"return", "name", "scale", "color", "kern", "parameter",
+	"forward", "backward", "halfspace", "quarterspace", "return",
+	"name", "scale", "color", "margin", "kern", "parameter",
 	"special", NULL};
 
    static char *pinTypeNames[] = {"normal", "text", "local", "pin", "global",
@@ -4319,6 +4319,14 @@ int xctcl_label(ClientData clientData, Tcl_Interp *interp,
 	 if ((idx2 > TEXT_STRING) && (idx2 < FONT_NAME) && (objc - nidx == 2)) { 
 	    labeltext(idx2, (char *)1);
 	 }
+	 else if (idx2 == MARGINSTOP) {
+	    if (objc - nidx == 3) {
+	       result = Tcl_GetIntFromObj(interp, objv[nidx + 2], &value);
+	       if (result != TCL_OK) return result;
+ 	    }
+	    else value = 1;
+	    labeltext(idx2, (char *)&value);
+	 }
 	 else if ((idx2 == PARAM_START) && (objc - nidx == 3)) { 
 	    labeltext(idx2, Tcl_GetString(objv[nidx + 2]));
 	 }
@@ -4382,7 +4390,7 @@ int xctcl_label(ClientData clientData, Tcl_Interp *interp,
 
       case SubstringIdx:
 	 objPtr = Tcl_NewListObj(0, NULL);
-	 if (areawin->selects == 1) {
+	 if (areawin != NULL && areawin->selects == 1) {
 	    if (SELECTTYPE(areawin->selectlist) == LABEL) {
 	       Tcl_ListObjAppendElement(interp, objPtr, Tcl_NewIntObj(areawin->textend));
 	       Tcl_ListObjAppendElement(interp, objPtr, Tcl_NewIntObj(areawin->textpos));

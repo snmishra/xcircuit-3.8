@@ -69,7 +69,8 @@
 	ifelse scale } if /showflag 0 def /fspc pspc def /Bline 0 def /Tabs
 	0 array def /fscale 1.0 def /kY 0 def gsave dup 1 add copy dup
 	1 0 dtransform exch atan rotate {exch dup type /stringtype eq {gsave
-	dup true charpath flattenpath pathbbox pop exch pop exch sub twidth
+        dup gsave newpath 0 0 moveto true charpath flattenpath pathbbox pop
+	exch pop exch pop grestore currentpoint pop add twidth
 	ge {grestore CR exch 1 add dup 2 add {CR} exch 1 roll exch} {grestore}
 	ifelse true charpath flattenpath} {dup type /arraytype eq {exec} {12
 	string cvs true charpath flattenpath} ifelse} ifelse} repeat exch pop

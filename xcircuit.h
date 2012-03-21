@@ -376,13 +376,13 @@ enum loadmodes {IMPORT = 1, PSBKGROUND, SCRIPT, RECOVER,
 #define TABSTOP	 	 7  /* insert tab stop position			*/
 #define TABFORWARD 	 8  /* insert tab stop position			*/
 #define TABBACKWARD 	 9  /* insert tab stop position			*/
-#define MARGINSTOP	10  /* declare a width limit for the text	*/
-#define HALFSPACE	11  /* insert half-space; no data		*/
-#define QTRSPACE	12  /* insert quarter space; no data		*/
-#define RETURN		13  /* carriage-return character; no data	*/
-#define FONT_NAME       14  /* inline font designator; data = font name */
-#define FONT_SCALE	15  /* font scale change; data = scale		*/
-#define FONT_COLOR	16  /* font color change; data = color		*/
+#define HALFSPACE	10  /* insert half-space; no data		*/
+#define QTRSPACE	11  /* insert quarter space; no data		*/
+#define RETURN		12  /* carriage-return character; no data	*/
+#define FONT_NAME       13  /* inline font designator; data = font name */
+#define FONT_SCALE	14  /* font scale change; data = scale		*/
+#define FONT_COLOR	15  /* font color change; data = color		*/
+#define MARGINSTOP	16  /* declare a width limit for the text	*/
 #define KERN		17  /* set new kern values; data = kern x, y	*/
 #define PARAM_START	18  /* bounds a parameter; data = param key	*/
 #define PARAM_END	19  /* bounds a parameter; no data 		*/
