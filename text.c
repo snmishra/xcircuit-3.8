@@ -1547,7 +1547,6 @@ void UDrawString0(labelptr drawlabel, int passcolor, objinstptr localinst,
 	        tabstops[numtabs - 1] = newpoint.x;
 		break;
 
-	     case MARGINSTOP:
 	     case RETURN:
 		tmpscale = natscale = 1.0;
 		baseline -= BASELINE;
@@ -1734,7 +1733,6 @@ TextExtents ULength(labelptr drawlabel, objinstptr localinst,
 	    natscale = strscale = oldscale;
 	    ykern = 0.0;
 	    break;
-	 case MARGINSTOP:
 	 case RETURN:
 	    natscale = strscale = oldscale;
 	    ykern = 0.0;
@@ -1967,7 +1965,7 @@ void InsertMarginNewlines(labelptr settext, objinstptr localinst)
 
 	    // Insert a carriage return, if the previous segment was not
 	    // already one.
-	    if (slen > 0 || (lastseg->type != RETURN && lastseg->type != MARGINSTOP)) {
+	    if (slen > 0 || (lastseg->type != RETURN)) {
 	       strptr = makesegment(&settext->string, strptr);
 	       strptr->type = RETURN;
 	       strptr->data.flags = 1;	/* Mark as auto-generated line wrap */
