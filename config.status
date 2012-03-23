@@ -511,7 +511,7 @@ s,@am__leading_dot@,.,;t t
 s,@AMTAR@,${SHELL} /home/tim/gitsrc/xcircuit-3.8/missing --run tar,;t t
 s,@am__tar@,${AMTAR} chof - "$$tardir",;t t
 s,@am__untar@,${AMTAR} xf -,;t t
-s,@REVISION@,8,;t t
+s,@REVISION@,12,;t t
 s,@CC@,gcc,;t t
 s,@CFLAGS@,-fPIC -g -fPIC,;t t
 s,@LDFLAGS@,-L/usr/X11R6/lib64   -L/usr/X11R6/lib64,;t t

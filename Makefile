@@ -149,7 +149,7 @@ PACKAGE_VERSION =
 PATH_SEPARATOR = :
 PYTHON = 
 RANLIB = ranlib
-REVISION = 8
+REVISION = 12
 SET_MAKE = 
 SHDLIB_EXT = .so
 SHELL = /bin/sh
@@ -218,7 +218,7 @@ AUTOMAKE_OPTIONS = foreign no-dependencies no-dist
 
 # Additional files to distribute
 EXTRA_DIST = COPYRIGHT README README.ISOLatin2 README.notes
-FULL_VERSION = 3.8.8
+FULL_VERSION = 3.8.12
 
 # Automake files
 ac_aux_dir = dist
@@ -641,7 +641,7 @@ lib/tcl/xcircuit${SHDLIB_EXT}: xcwrap.o ${xcircuit_OBJECTS} ${xcircuit_DEPEND}
 	$(CC) ${CFLAGS} ${SHLIB_CFLAGS} -o $@ ${LDDL_FLAGS} xcwrap.o \
 		${xcircuit_OBJECTS} ${xcircuit_LDADD} ${SHLIB_LIB_SPECS} \
 		${LDFLAGS} ${X_EXTRA_LIBS} ${EXTRA_LIBS} -lc ${LIBS} \
-		${EXTRA_LIB_SPECS}
+		${LIB_SPECS} ${EXTRA_LIB_SPECS}
 
 xcircexec$(EXEEXT): xcircexec.o
 	$(RM) ./xcircexec$(EXEEXT)
