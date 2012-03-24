@@ -606,27 +606,24 @@ int GetPositionFromList(Tcl_Interp *interp, Tcl_Obj *list, XPoint *rpoint)
 
 Tcl_Obj *TclIndexToRGB(int cidx)
 {
-   int i;
    Tcl_Obj *RGBTuple;
 
    if (cidx < 0) {	/* Handle "default color" */
       return Tcl_NewStringObj("Default", 7);
    }
-
-   for (i = 0; i < number_colors; i++) {
-      if (cidx == colorlist[i].color.pixel) {
-	 RGBTuple = Tcl_NewListObj(0, NULL);
-	 Tcl_ListObjAppendElement(xcinterp, RGBTuple,
-		Tcl_NewIntObj((int)(colorlist[i].color.red / 256)));
-	 Tcl_ListObjAppendElement(xcinterp, RGBTuple,
-		Tcl_NewIntObj((int)(colorlist[i].color.green / 256)));
-	 Tcl_ListObjAppendElement(xcinterp, RGBTuple,
-		Tcl_NewIntObj((int)(colorlist[i].color.blue / 256)));
-	 return RGBTuple;
-      }
+   else if (cidx >= number_colors) {
+      Tcl_SetResult(xcinterp, "Bad color index", NULL);
+      return NULL;
    }
-   Tcl_SetResult(xcinterp, "invalid or unknown color index", NULL);
-   return NULL;
+
+   RGBTuple = Tcl_NewListObj(0, NULL);
+   Tcl_ListObjAppendElement(xcinterp, RGBTuple,
+	Tcl_NewIntObj((int)(colorlist[cidx].color.red / 256)));
+   Tcl_ListObjAppendElement(xcinterp, RGBTuple,
+	Tcl_NewIntObj((int)(colorlist[cidx].color.green / 256)));
+   Tcl_ListObjAppendElement(xcinterp, RGBTuple,
+	Tcl_NewIntObj((int)(colorlist[cidx].color.blue / 256)));
+   return RGBTuple;
 }
 
 
