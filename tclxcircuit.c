@@ -5607,8 +5607,8 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 
       case ObjectIdx:
 	 if ((objc - nidx) == 1) {
-	    numfound = 0;
 	    Tcl_Obj *listPtr;
+	    numfound = 0;
 	    for (i = 0; i < areawin->selects; i++) {
 	       if (SELECTTYPE(areawin->selectlist + i) == OBJINST) {
 		  pinst = SELTOOBJINST(areawin->selectlist + i);
@@ -5636,8 +5636,8 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 
       case ScaleIdx:
 	 if ((objc - nidx) == 1) {
-	    numfound = 0;
 	    Tcl_Obj *listPtr;
+	    numfound = 0;
 	    for (i = 0; i < areawin->selects; i++) {
 	       if (SELECTTYPE(areawin->selectlist + i) == OBJINST) {
 		  pinst = SELTOOBJINST(areawin->selectlist + i);
@@ -5670,8 +5670,8 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
       case CenterIdx:
 
 	 if ((objc - nidx) == 1) {
-	    numfound = 0;
 	    Tcl_Obj *listPtr, *coord;
+	    numfound = 0;
 	    for (i = 0; i < areawin->selects; i++) {
 	       if (SELECTTYPE(areawin->selectlist + i) == OBJINST) {
 		  pinst = SELTOOBJINST(areawin->selectlist + i);
@@ -5719,8 +5719,8 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 
       case LineWidthIdx:
 	 if ((objc - nidx) == 1) {
-	    numfound = 0;
 	    Tcl_Obj *listPtr;
+	    numfound = 0;
 	    for (i = 0; i < areawin->selects; i++) {
 	       if (SELECTTYPE(areawin->selectlist + i) == OBJINST) {
 		  pinst = SELTOOBJINST(areawin->selectlist + i);
@@ -5767,8 +5767,8 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 
       case BBoxIdx:
 	 if ((objc - nidx) == 1) {
-	    numfound = 0;
 	    Tcl_Obj *listPtr, *coord;
+	    numfound = 0;
 	    for (i = 0; i < areawin->selects; i++) {
 	       if (SELECTTYPE(areawin->selectlist + i) == OBJINST) {
 		  pinst = SELTOOBJINST(areawin->selectlist + i);
