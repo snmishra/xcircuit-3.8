@@ -65,6 +65,7 @@ dnl check size of pointer for correct behavior on 64-bit systems
 AC_CHECK_SIZEOF([void *], 4)
 AC_CHECK_SIZEOF([unsigned int], 4)
 AC_CHECK_SIZEOF([unsigned long], 8)
+AC_CHECK_SIZEOF([unsigned long long], 16)
 
 dnl check for X libraries and include files
 AC_PATH_XTRA
