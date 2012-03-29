@@ -846,7 +846,7 @@ void setcolormark(int colorval)
    /* Set GUI variables and execute any command tags associated */
    /* with the "color" command */
   
-   char cstr[5];
+   char cstr[6];
    int i;
 
    if (colorval != DEFAULTCOLOR) {
