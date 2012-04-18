@@ -2552,8 +2552,10 @@ void readlabel(objectptr localdata, char *lineptr, stringpart **strhead)
             newpart->type = HALFSPACE;
          else if (!strncmp(cmdptr, "qS", 2))
             newpart->type = QTRSPACE;
-         else if (!strncmp(cmdptr, "CR", 2))
+         else if (!strncmp(cmdptr, "CR", 2)) {
 	    newpart->type = RETURN;
+	    newpart->data.flags = 0;
+	 }
          else if (!strcmp(cmdptr, "Ts")) /* "Tab set" command */
 	    newpart->type = TABSTOP;
          else if (!strcmp(cmdptr, "Tf")) /* "Tab forward" command */
@@ -2587,6 +2589,12 @@ void readlabel(objectptr localdata, char *lineptr, stringpart **strhead)
 	    newpart->data.kern[0] = kx;
 	    newpart->data.kern[1] = ky;
          }
+	 else if (!strcmp(cmdptr, "MR")) { /* "Margin stop" command */
+	    int width;
+	    sscanf(segptr, "%d", &width);  
+	    newpart->type = MARGINSTOP;
+	    newpart->data.width = width;
+	 }
          else if (!strcmp(cmdptr, "scb")) {  /* change color command */
 	    float cr, cg, cb;
 	    int cval, cindex;
@@ -4341,6 +4349,7 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 	    if (!strncmp(lineptr, "mark", 4)) lineptr += 4;
 
 	    readlabel(localdata, lineptr, &(*newlabel)->string);
+	    CheckMarginStop(*newlabel, areawin->topinstance, FALSE);
 
 	    if (version < 2.25) {
 	       /* Switch 1st scale designator to overall font scale */
@@ -5626,48 +5635,86 @@ int printRGBvalues(char *tstr, int index, const char *postfix)
 /* Write string to PostScript string, ignoring NO_OPs */
 /*----------------------------------------------------*/
 
-char *nosprint(char *sptr)
+char *nosprint(char *baseptr, int *margin, int *extsegs)
 {
    int qtmp, slen = 100;
+   char *sptr, *lptr = NULL, lsave, *sptr2;
    u_char *pptr, *qptr, *bptr;
 
    bptr = (u_char *)malloc(slen);	/* initial length 100 */
    qptr = bptr;
 
-   *qptr++ = '(';
+   while(1) {	/* loop for breaking up margin-limited text into words */
 
-   /* Includes extended character set (non-ASCII) */
-
-   for (pptr = sptr; pptr && *pptr != '\0'; pptr++) {
-      /* Ensure enough space for the string, including everything */
-      /* following the "for" loop */
-      qtmp = qptr - bptr;
-      if (qtmp + 7 >= slen) {
-	 slen += 7;
-	 bptr = (char *)realloc(bptr, slen);
-	 qptr = bptr + qtmp;
+      if (*margin > 0) {
+	 sptr = strrchr(baseptr, ' ');
+	 if (sptr == NULL)
+	    sptr = baseptr;
+	 else {
+	    if (*(sptr + 1) == '\0') {
+	       while (*sptr == ' ') sptr--;
+	       *(sptr + 1) = '\0';
+	       sptr2 = strrchr(baseptr, ' ');
+	       *(sptr + 1) = ' ';
+	       if (sptr2 == NULL)
+		  sptr = baseptr;
+	       else
+		  sptr = sptr2 + 1;
+	    }
+	    else
+	       sptr++;
+	 }
       }
+      else
+	 sptr = baseptr;
 
-      /* Deal with non-printable characters and parentheses */
-      if (*pptr > (char)126) {
-	 sprintf(qptr, "\\%3o", (int)(*pptr));
-	 qptr += 4; 
+      *qptr++ = '(';
+
+      /* Includes extended character set (non-ASCII) */
+
+      for (pptr = sptr; pptr && *pptr != '\0'; pptr++) {
+         /* Ensure enough space for the string, including everything */
+         /* following the "for" loop */
+         qtmp = qptr - bptr;
+         if (qtmp + 7 >= slen) {
+	    slen += 7;
+	    bptr = (char *)realloc(bptr, slen);
+	    qptr = bptr + qtmp;
+         }
+
+         /* Deal with non-printable characters and parentheses */
+         if (*pptr > (char)126) {
+	    sprintf(qptr, "\\%3o", (int)(*pptr));
+	    qptr += 4; 
+         }
+         else {
+            if ((*pptr == '(') || (*pptr == ')') || (*pptr == '\\'))
+	       *qptr++ = '\\';
+            *qptr++ = *pptr;
+         }
+      }
+      if (qptr == bptr + 1) {	/* Empty string gets a NULL result, not "()" */
+         qptr--;
       }
       else {
-         if ((*pptr == '(') || (*pptr == ')') || (*pptr == '\\'))
-	    *qptr++ = '\\';
-         *qptr++ = *pptr;
+         *qptr++ = ')';
+         *qptr++ = ' ';
+      }
+
+      if (lptr != NULL)
+	 *lptr = lsave;
+
+      if (sptr == baseptr)
+	 break;
+      else {
+	 lptr = sptr;
+	 lsave = *lptr;
+	 *lptr = '\0';
+	 (*extsegs)++;
       }
    }
-   if (qptr == bptr + 1) {	/* Empty string gets a NULL result, not "()" */
-      qptr--;
-   }
-   else {
-      *qptr++ = ')';
-      *qptr++ = ' ';
-   }
-   *qptr++ = '\0';
 
+   *qptr++ = '\0';
    return (char *)bptr;
 }
 
@@ -5683,6 +5730,8 @@ short writelabel(FILE *ps, stringpart *chrtop, short *stcount)
    char *tmpstr;
    float lastscale = 1.0;
    int lastfont = -1;
+   int margin = 0;
+   int extsegs = 0;
 
    /* Write segments into string array, in forward order */
 
@@ -5693,7 +5742,7 @@ short writelabel(FILE *ps, stringpart *chrtop, short *stcount)
 	 strcpy(ostr[segs], "() ");
       }
       else {
-	 tmpstr = writesegment(chrptr, &lastscale, &lastfont);
+	 tmpstr = writesegment(chrptr, &lastscale, &lastfont, &margin, &extsegs);
 	 if (tmpstr[0] != '\0')
             ostr[segs] = tmpstr;
 	 else
@@ -5710,7 +5759,7 @@ short writelabel(FILE *ps, stringpart *chrtop, short *stcount)
    }
    free(ostr);	 
 
-   return segs;
+   return segs + extsegs;
 }
 
 /*--------------------------------------------------------------*/
@@ -5718,7 +5767,8 @@ short writelabel(FILE *ps, stringpart *chrtop, short *stcount)
 /* (Recursive, so we can write segments in the reverse order)	*/
 /*--------------------------------------------------------------*/
 
-char *writesegment(stringpart *chrptr, float *lastscale, int *lastfont)
+char *writesegment(stringpart *chrptr, float *lastscale, int *lastfont, int *margin,
+	int *extsegs)
 {
    int type = chrptr->type;
    char *retstr, *validname;
@@ -5759,7 +5809,11 @@ char *writesegment(stringpart *chrptr, float *lastscale, int *lastfont)
 	 break;
       case RETURN:
 	 *lastscale = 1.0;
-	 sprintf(_STR, "{CR} ");
+	 if (chrptr->data.flags == 0)
+	    // Ignore automatically-generated line breaks
+	    sprintf(_STR, "{CR} ");
+	 else
+	    sprintf(_STR, "");
 	 break;
       case TABSTOP:
 	 sprintf(_STR, "{Ts} ");
@@ -5804,12 +5858,17 @@ char *writesegment(stringpart *chrptr, float *lastscale, int *lastfont)
 		    colorlist[chrptr->data.color].color.pixel, "scb} ") < 0)
 	       strcat(_STR, "sce} ");
 	 break;
+      case MARGINSTOP:
+	 sprintf(_STR, "{%d MR} ", chrptr->data.width);
+	 *margin = chrptr->data.width;
+	 break;
       case KERN:
 	 sprintf(_STR, "{%d %d Kn} ", chrptr->data.kern[0], chrptr->data.kern[1]);
 	 break;
       case TEXT_STRING:
-	 /* Everything except TEXT_STRING will always fit in the _STR fixed-length character array. */
-	 return nosprint(chrptr->data.string);
+	 /* Everything except TEXT_STRING will always fit in the _STR fixed-	*/
+	 /* length character array. 						*/
+	 return nosprint(chrptr->data.string, margin, extsegs);
    }
 
    retstr = (char *)malloc(1 + strlen(_STR));

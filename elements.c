@@ -473,11 +473,13 @@ void charreport(labelptr curlabel)
 	 cleft -= 2;
       }
       if (strptr == NULL) break;
-      charprint(_STR, strptr, locpos);
-      cleft -= strlen(_STR);
-      strncat(_STR2, _STR, cleft);
-      strncat(_STR2, " ", --cleft);
-      if (cleft <= 0) break;
+      if (strptr->type != RETURN || strptr->data.flags == 0) {
+         charprint(_STR, strptr, locpos);
+         cleft -= strlen(_STR);
+         strncat(_STR2, _STR, cleft);
+         strncat(_STR2, " ", --cleft);
+         if (cleft <= 0) break;
+      }
    }
    W3printf("%s", _STR2);
 }
@@ -744,7 +746,7 @@ Boolean labeltext(int keypressed, char *clientdata)
 	 curpos = findstringpart(areawin->textpos, &locpos, curlabel->string,
 			areawin->topinstance);
 	 if (curpos != NULL)
-	    if (curpos->type == RETURN)
+	    if (curpos->type == RETURN || curpos->type == MARGINSTOP)
 	       break;
       }
    }
@@ -753,7 +755,7 @@ Boolean labeltext(int keypressed, char *clientdata)
 	 areawin->textpos--;
 	 curpos = findstringpart(areawin->textpos, &locpos, curlabel->string,
 	 		areawin->topinstance);
-	 if (curpos->type == RETURN) {
+	 if (curpos->type == RETURN || curpos->type == MARGINSTOP) {
 	    if (areawin->textpos > 1) areawin->textpos--;
 	    break;
 	 }
@@ -816,14 +818,34 @@ Boolean labeltext(int keypressed, char *clientdata)
 
       /* erase first before redrawing unless the string is empty */
       undrawtext(curlabel);
+
+      /* Get text width first.  Don't back up over spaces;  this	*/
+      /* allows the margin width to be padded out with spaces.		*/
+
+      if (keypressed == MARGINSTOP)
+	 tmpext = ULength(curlabel, areawin->topinstance, areawin->textpos, NULL);
+
       if (locpos > 0) {
-         curpos = splitstring(areawin->textpos, &curlabel->string,
+	 if (keypressed == MARGINSTOP) {
+	    /* Move forward by any spaces; if we're at the text */
+	    /* end, move to the next text part;  otherwise,	*/
+	    /* split the string.				*/
+
+	    while (*(curpos->data.string + locpos) == ' ') locpos++;
+	    if (*(curpos->data.string + locpos) == '\0') locpos = 0;
+	 }
+	 if (locpos > 0)
+            curpos = splitstring(areawin->textpos, &curlabel->string,
 			areawin->topinstance);
 	 curpos = curpos->nextpart;
       }
       newpart = makesegment(&curlabel->string, curpos);
       newpart->type = keypressed;
       switch (keypressed) {
+	 case RETURN:
+	    // Identify this as an explicitly placed line break
+	    newpart->data.flags = 0;
+	    break;
 	 case FONT_SCALE:
 	    newpart->data.scale = *((float *)clientdata);
 	    break;
@@ -838,6 +860,17 @@ Boolean labeltext(int keypressed, char *clientdata)
 	 case FONT_NAME:
 	    newpart->data.font = *((int *)clientdata);
 	    if (newpart->data.font >= fontcount) errcond = True;
+	    break;
+	 case MARGINSTOP:
+	    /* A margin of 1 or 0 is useless, so such a value	*/
+	    /* indicates to take the margin from the current	*/
+	    /* position.					*/
+
+	    if (*((int *)clientdata) <= 1)
+	       newpart->data.width = (int)tmpext.width;
+	    else
+	       newpart->data.width = *((int *)clientdata);
+	    CheckMarginStop(curlabel, areawin->topinstance, FALSE);
 	    break;
 	 case PARAM_START:
 	    newpart->data.string = (char *)malloc(1 + strlen(clientdata));
@@ -912,6 +945,9 @@ Boolean labeltext(int keypressed, char *clientdata)
    /* Redraw the label */
 
    if (do_redraw) {
+      /* Generate automatic line breaks if there is a MARGINSTOP directive */
+      CheckMarginStop(curlabel, areawin->topinstance, TRUE);
+
       XcSetFunction(GXcopy);
       redrawtext(curlabel);
    }

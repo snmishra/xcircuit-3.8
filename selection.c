@@ -1028,7 +1028,7 @@ Boolean selectarea(objectptr selobj, XPoint *boxpts, short level)
 
 	   tmpext = ULength(slab, areawin->topinstance, 0, NULL);
 	   adj.x = (slab->justify & NOTLEFT ? (slab->justify & RIGHT ? 
-			tmpext.width : tmpext.width >> 1) : 0);
+			tmpext.maxwidth : tmpext.maxwidth >> 1) : 0);
 	   adj.y = (slab->justify & NOTBOTTOM ? (slab->justify & TOP ? 
 			tmpext.ascent : (tmpext.ascent + tmpext.base) >> 1)
 			: tmpext.base);
@@ -1043,7 +1043,7 @@ Boolean selectarea(objectptr selobj, XPoint *boxpts, short level)
 	      if (strptr->type == RETURN) tmpl2 = 0;
 	      tmpl1 = tmpl2;
 	      tmpext = ULength(slab, areawin->topinstance, j + 1, NULL);
-	      tmpl2 = tmpext.width;
+	      tmpl2 = tmpext.maxwidth;
 	      isect = test_insideness(((tmpl1 + tmpl2) >> 1) - adj.x,
 			(tmpext.base + (BASELINE >> 1)) - adj.y, newboxpts);
 

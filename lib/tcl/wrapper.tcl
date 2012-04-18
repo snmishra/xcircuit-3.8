@@ -1976,6 +1976,18 @@ proc xcircuit::promptkern {} {
 
 #----------------------------------------------------------------------
 
+proc xcircuit::promptmargin {} {
+   global XCOps
+   set XCOps(dialog) marginamount
+   .dialog.bbar.apply configure -command \
+	{xcircuit::label insert margin [.dialog.textent.txt get]}
+   .dialog.textent.title.field configure -text "Margin amount:"
+   .dialog.textent.txt delete 0 end
+   xcircuit::popupdialog
+}
+
+#----------------------------------------------------------------------
+
 set XCOps(tools) [list pn w b a s t mv cp e d2 cw ccw fx fy r pu2 po2 mk pz \
 	uj co bd fi pm pa li yp pl z4 z5 i]
 
@@ -2464,6 +2476,9 @@ proc xcircuit::makemenus {window} {
    $m2 add command -label "Tab stop" -command "xcircuit::label insert stop"
    $m2 add command -label "Tab forward" -command "xcircuit::label insert forward"
    $m2 add command -label "Tab backward" -command "xcircuit::label insert backward"
+   $m2 add command -label "Margin stop" -command {if {[lindex [xcircuit::label \
+		substring] 1] <= 1} {xcircuit::promptmargin} else \
+		{xcircuit::label insert margin}}
    $m2 add command -label "Carriage Return" -command "xcircuit::label insert return"
    $m2 add command -label "1/2 space" -command "xcircuit::label insert halfspace"
    $m2 add command -label "1/4 space" -command "xcircuit::label insert quarterspace"

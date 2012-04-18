@@ -1291,9 +1291,9 @@ void labelbbox(labelptr labox, XPoint *npoints, objinstptr callinst)
 
    tmpext = ULength(labox, callinst, 0, NULL);
    points[0].x = points[1].x = (labox->justify & NOTLEFT ? 
-	       (labox->justify & RIGHT ? -tmpext.width :
-		-tmpext.width / 2) : 0);
-   points[2].x = points[3].x = points[0].x + tmpext.width;
+	       (labox->justify & RIGHT ? -tmpext.maxwidth :
+		-tmpext.maxwidth / 2) : 0);
+   points[2].x = points[3].x = points[0].x + tmpext.maxwidth;
    points[0].y = points[3].y = (labox->justify & NOTBOTTOM ?
 	       (labox->justify & TOP ? -tmpext.ascent :
 		-(tmpext.ascent + tmpext.base) / 2) : -tmpext.base)
@@ -2027,7 +2027,7 @@ void UDrawTextLine(labelptr curlabel, short tpos)
    tmpext = ULength(curlabel, areawin->topinstance, 0, NULL);
 
    points[0].x = (tmpjust & NOTLEFT ?
-        (tmpjust & RIGHT ? -tmpext.width : -tmpext.width >> 1) : 0)
+        (tmpjust & RIGHT ? -tmpext.maxwidth : -tmpext.maxwidth >> 1) : 0)
 	+ xdist;
    points[0].y = (tmpjust & NOTBOTTOM ?
         (tmpjust & TOP ? -tmpext.ascent : -(tmpext.ascent + tmpext.base) / 2)

@@ -1567,8 +1567,8 @@ void poly_edit_op(int op)
 	    UDrawPolygon(lwire, xobjs.pagelist[areawin->page]->wirewidth);
 	    if (lwire->number == 3 && !(lwire->style & UNCLOSED)) 
 	       lwire->style |= UNCLOSED;
-	    lwire->number--;
 	    cycle = checkcycle((genericptr)lwire, 0);
+	    lwire->number--;
 	    for (lpoint = lwire->points + cycle; lpoint <
 			lwire->points + lwire->number; lpoint++)
 	       *lpoint = *(lpoint + 1);
@@ -3413,12 +3413,16 @@ void edit(int x, int y)
 		(*lastlabel)->scale, (*lastlabel)->rotation);
             tmpext = ULength(*lastlabel, areawin->topinstance, 0, NULL);
 	    tmppt.x += ((*lastlabel)->justify & NOTLEFT ?
-		((*lastlabel)->justify & RIGHT ? tmpext.width : tmpext.width >> 1) : 0);
+		((*lastlabel)->justify & RIGHT ? tmpext.maxwidth
+		: tmpext.maxwidth >> 1) : 0);
 	    tmppt.y += ((*lastlabel)->justify & NOTBOTTOM ?
 		((*lastlabel)->justify & TOP ? tmpext.ascent :
 		(tmpext.ascent + tmpext.base) >> 1) : tmpext.base);
 	    if ((*lastlabel)->pin)
 	       pinadjust((*lastlabel)->justify, &tmppt.x, NULL, -1);
+
+	    // Where tbreak is passed to ULength, the character position,
+	    // not the dimension, is held in tmpext.width field.
             tmpext = ULength(*lastlabel, areawin->topinstance, 0, &tmppt);
 	    areawin->textpos = tmpext.width;
 	 }

@@ -104,7 +104,7 @@ static char *function_names[NUM_FUNCTIONS + 1] = {
    "Select Box", "Connectivity", "Continue Element", "Finish Element",
    "Continue Copy", "Finish Copy", "Finish", "Cancel Last", "Sim",
    "SPICE", "PCB", "SPICE Flat", "Rescale", "Reorder", "Color",
-   "Text Delete Param",
+   "Margin Stop", "Text Delete Param",
    NULL			/* sentinel */
 };
 

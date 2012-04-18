@@ -606,27 +606,24 @@ int GetPositionFromList(Tcl_Interp *interp, Tcl_Obj *list, XPoint *rpoint)
 
 Tcl_Obj *TclIndexToRGB(int cidx)
 {
-   int i;
    Tcl_Obj *RGBTuple;
 
    if (cidx < 0) {	/* Handle "default color" */
       return Tcl_NewStringObj("Default", 7);
    }
-
-   for (i = 0; i < number_colors; i++) {
-      if (cidx == colorlist[i].color.pixel) {
-	 RGBTuple = Tcl_NewListObj(0, NULL);
-	 Tcl_ListObjAppendElement(xcinterp, RGBTuple,
-		Tcl_NewIntObj((int)(colorlist[i].color.red / 256)));
-	 Tcl_ListObjAppendElement(xcinterp, RGBTuple,
-		Tcl_NewIntObj((int)(colorlist[i].color.green / 256)));
-	 Tcl_ListObjAppendElement(xcinterp, RGBTuple,
-		Tcl_NewIntObj((int)(colorlist[i].color.blue / 256)));
-	 return RGBTuple;
-      }
+   else if (cidx >= number_colors) {
+      Tcl_SetResult(xcinterp, "Bad color index", NULL);
+      return NULL;
    }
-   Tcl_SetResult(xcinterp, "invalid or unknown color index", NULL);
-   return NULL;
+
+   RGBTuple = Tcl_NewListObj(0, NULL);
+   Tcl_ListObjAppendElement(xcinterp, RGBTuple,
+	Tcl_NewIntObj((int)(colorlist[cidx].color.red / 256)));
+   Tcl_ListObjAppendElement(xcinterp, RGBTuple,
+	Tcl_NewIntObj((int)(colorlist[cidx].color.green / 256)));
+   Tcl_ListObjAppendElement(xcinterp, RGBTuple,
+	Tcl_NewIntObj((int)(colorlist[cidx].color.blue / 256)));
+   return RGBTuple;
 }
 
 
@@ -702,6 +699,14 @@ Tcl_Obj *TclGetStringParts(stringpart *thisstring)
 	       Tcl_ListObjAppendElement(xcinterp, lstr, sdict);
 	    }
 	    break;
+	 case MARGINSTOP:
+	    sdict = Tcl_NewListObj(0, NULL);
+	    Tcl_ListObjAppendElement(xcinterp, sdict,
+			Tcl_NewStringObj("Margin Stop", 11));
+	    Tcl_ListObjAppendElement(xcinterp, sdict,
+			Tcl_NewIntObj((int)strptr->data.width));
+	    Tcl_ListObjAppendElement(xcinterp, lstr, sdict);
+	    break;
 	 case TABSTOP:
 	    Tcl_ListObjAppendElement(xcinterp, lstr,
 			Tcl_NewStringObj("Tab Stop", 8));
@@ -715,7 +720,9 @@ Tcl_Obj *TclGetStringParts(stringpart *thisstring)
 			Tcl_NewStringObj("Tab Backward", 12));
 	    break;
 	 case RETURN:
-	    Tcl_ListObjAppendElement(xcinterp, lstr,
+	    // Don't show automatically interted line breaks
+	    if (strptr->data.flags == 0)
+	       Tcl_ListObjAppendElement(xcinterp, lstr,
 			Tcl_NewStringObj("Return", 6));
 	    break;
 	 case SUBSCRIPT:
@@ -769,14 +776,14 @@ int GetXCStringFromList(Tcl_Interp *interp, Tcl_Obj *list, stringpart **rstring)
 
    static char *partTypes[] = {"Text", "Subscript", "Superscript",
 	"Normalscript", "Underline", "Overline", "No Line", "Tab Stop",
-	"Tab Forward", "Tab Backward", "Half Space", "Quarter Space", "Return",
-	"Font", "Font Scale", "Color", "Kern", "Parameter", "End Parameter",
-	"Special", NULL};
+	"Tab Forward", "Tab Backward", "Half Space", "Quarter Space",
+	"Return", "Font", "Font Scale", "Color", "Margin Stop", "Kern",
+	"Parameter", "End Parameter", "Special", NULL};
 
    static int partTypesIdx[] = {TEXT_STRING, SUBSCRIPT, SUPERSCRIPT,
 	NORMALSCRIPT, UNDERLINE, OVERLINE, NOLINE, TABSTOP, TABFORWARD,
 	TABBACKWARD, HALFSPACE, QTRSPACE, RETURN, FONT_NAME, FONT_SCALE,
-	FONT_COLOR, KERN, PARAM_START, PARAM_END, SPECIAL};
+	FONT_COLOR, MARGINSTOP, KERN, PARAM_START, PARAM_END, SPECIAL};
 
    /* No place to put result! */
    if (rstring == NULL) return TCL_ERROR;
@@ -854,6 +861,11 @@ int GetXCStringFromList(Tcl_Interp *interp, Tcl_Obj *list, stringpart **rstring)
 	    result = Tcl_GetDoubleFromObj(interp, tobj, &fscale);
 	    if (result != TCL_OK) return result;
 	    newpart->data.scale = (float)fscale;
+	    break;
+	 case MARGINSTOP:
+	    result = Tcl_GetIntFromObj(interp, tobj, &ival);
+	    if (result != TCL_OK) return result;
+	    newpart->data.width = ival;
 	    break;
 	 case KERN:
 	    result = Tcl_ListObjLength(interp, tobj, &numparts);
@@ -4017,10 +4029,12 @@ int xctcl_label(ClientData clientData, Tcl_Interp *interp,
 	TextIdx, LaTeXIdx, ListIdx, ReplaceIdx, PositionIdx
    };
 
+   /* These must match the order of string part types defined in xcircuit.h */
    static char *subsubCmds[] = {"text", "subscript", "superscript",
 	"normalscript", "underline", "overline", "noline", "stop",
 	"forward", "backward", "halfspace", "quarterspace", "return",
-	"name", "scale", "color", "kern", "parameter", "special", NULL};
+	"name", "scale", "color", "margin", "kern", "parameter",
+	"special", NULL};
 
    static char *pinTypeNames[] = {"normal", "text", "local", "pin", "global",
 	"info", "netlist", NULL};
@@ -4302,6 +4316,14 @@ int xctcl_label(ClientData clientData, Tcl_Interp *interp,
 	 if ((idx2 > TEXT_STRING) && (idx2 < FONT_NAME) && (objc - nidx == 2)) { 
 	    labeltext(idx2, (char *)1);
 	 }
+	 else if (idx2 == MARGINSTOP) {
+	    if (objc - nidx == 3) {
+	       result = Tcl_GetIntFromObj(interp, objv[nidx + 2], &value);
+	       if (result != TCL_OK) return result;
+ 	    }
+	    else value = 1;
+	    labeltext(idx2, (char *)&value);
+	 }
 	 else if ((idx2 == PARAM_START) && (objc - nidx == 3)) { 
 	    labeltext(idx2, Tcl_GetString(objv[nidx + 2]));
 	 }
@@ -4365,7 +4387,7 @@ int xctcl_label(ClientData clientData, Tcl_Interp *interp,
 
       case SubstringIdx:
 	 objPtr = Tcl_NewListObj(0, NULL);
-	 if (areawin->selects == 1) {
+	 if (areawin != NULL && areawin->selects == 1) {
 	    if (SELECTTYPE(areawin->selectlist) == LABEL) {
 	       Tcl_ListObjAppendElement(interp, objPtr, Tcl_NewIntObj(areawin->textend));
 	       Tcl_ListObjAppendElement(interp, objPtr, Tcl_NewIntObj(areawin->textpos));
@@ -5585,8 +5607,8 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 
       case ObjectIdx:
 	 if ((objc - nidx) == 1) {
-	    numfound = 0;
 	    Tcl_Obj *listPtr;
+	    numfound = 0;
 	    for (i = 0; i < areawin->selects; i++) {
 	       if (SELECTTYPE(areawin->selectlist + i) == OBJINST) {
 		  pinst = SELTOOBJINST(areawin->selectlist + i);
@@ -5614,8 +5636,8 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 
       case ScaleIdx:
 	 if ((objc - nidx) == 1) {
-	    numfound = 0;
 	    Tcl_Obj *listPtr;
+	    numfound = 0;
 	    for (i = 0; i < areawin->selects; i++) {
 	       if (SELECTTYPE(areawin->selectlist + i) == OBJINST) {
 		  pinst = SELTOOBJINST(areawin->selectlist + i);
@@ -5648,8 +5670,8 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
       case CenterIdx:
 
 	 if ((objc - nidx) == 1) {
-	    numfound = 0;
 	    Tcl_Obj *listPtr, *coord;
+	    numfound = 0;
 	    for (i = 0; i < areawin->selects; i++) {
 	       if (SELECTTYPE(areawin->selectlist + i) == OBJINST) {
 		  pinst = SELTOOBJINST(areawin->selectlist + i);
@@ -5697,8 +5719,8 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 
       case LineWidthIdx:
 	 if ((objc - nidx) == 1) {
-	    numfound = 0;
 	    Tcl_Obj *listPtr;
+	    numfound = 0;
 	    for (i = 0; i < areawin->selects; i++) {
 	       if (SELECTTYPE(areawin->selectlist + i) == OBJINST) {
 		  pinst = SELTOOBJINST(areawin->selectlist + i);
@@ -5745,8 +5767,8 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 
       case BBoxIdx:
 	 if ((objc - nidx) == 1) {
-	    numfound = 0;
 	    Tcl_Obj *listPtr, *coord;
+	    numfound = 0;
 	    for (i = 0; i < areawin->selects; i++) {
 	       if (SELECTTYPE(areawin->selectlist + i) == OBJINST) {
 		  pinst = SELTOOBJINST(areawin->selectlist + i);
