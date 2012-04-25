@@ -102,6 +102,10 @@ short flags = -1;
   #endif
 #endif
 
+#ifdef ASG
+   extern int SetDebugLevel(int *level);
+#endif
+
 /*----------------------------------------------------------------------*/
 /* Reimplement strdup() to use Tcl_Alloc().				*/
 /* Note that "strdup" is defined as "Tcl_Strdup" in xcircuit.h.		*/
@@ -6150,7 +6154,7 @@ int xctcl_config(ClientData clientData, Tcl_Interp *interp,
 	"colorscheme", "coordstyle", "drawingscale", "manhattan", "centering",
 	"filter", "buschar", "backup", "search", "focus", "init",
 	"delete", "windownames", "hold", "database", "suspend",
-	"technologies", "fontnames", NULL
+	"technologies", "fontnames", "debug", NULL
    };
    enum SubIdx {
       AxisIdx, AxesIdx, GridIdx, SnapIdx, BBoxIdx, EditInPlaceIdx,
@@ -6158,7 +6162,7 @@ int xctcl_config(ClientData clientData, Tcl_Interp *interp,
 	ColorSchemeIdx, CoordStyleIdx, ScaleIdx, ManhattanIdx, CenteringIdx,
 	FilterIdx, BusCharIdx, BackupIdx, SearchIdx, FocusIdx,
 	InitIdx, DeleteIdx, WindowNamesIdx, HoldIdx, DatabaseIdx,
-	SuspendIdx, TechnologysIdx, FontNamesIdx
+	SuspendIdx, TechnologysIdx, FontNamesIdx, DebugIdx
    };
 
    if ((objc == 1) || (objc > 5)) {
@@ -6280,6 +6284,17 @@ int xctcl_config(ClientData clientData, Tcl_Interp *interp,
 	       Tcl_SetResult(interp, "No such window\n", NULL);
 	       return TCL_ERROR;
 	    }
+	 }
+	 break;
+
+      case DebugIdx:
+	 if (objc == 3) {
+	    result = Tcl_GetIntFromObj(interp, objv[2], &tmpint);
+	    if (result != TCL_OK) return result;
+	    SetDebugLevel(&tmpint);
+	 }
+	 else {
+	    Tcl_SetObjResult(interp, Tcl_NewIntObj(SetDebugLevel(NULL)));
 	 }
 	 break;
 
@@ -7213,6 +7228,8 @@ int xctcl_page(ClientData clientData, Tcl_Interp *interp,
 	       /* Make sure that the ASG library is present */
 
 	       if (NameToLibrary(ASG_SPICE_LIB) < 0) {
+		  short ilib;
+
 	          strcpy(_STR, ASG_SPICE_LIB);
 		  ilib = createlibrary(FALSE);
 		  if (loadlibrary(ilib) == FALSE) {

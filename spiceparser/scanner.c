@@ -34,9 +34,9 @@
 
 #include <ctype.h>
 #include <stdio.h>
-#include "makeutils.lib/debug.h"
+#include "debug.h"
 
-#include "parsers.lib/scanner.h"
+#include "scanner.h"
 
 
 

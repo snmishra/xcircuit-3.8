@@ -24,7 +24,7 @@
 Conrad Ziesler
 */
 
-#include "makeutils.lib/debug.h"
+#include "debug.h"
 #include "mergedup.h"
 
 

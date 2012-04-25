@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#include "makeutils.lib/debug.h"
-#include "parsers.lib/scanner.h"
-#include "netlist.lib/netlist_spice.h"
+#include "debug.h"
+#include "scanner.h"
+#include "netlist_spice.h"
 
 #define fprintf tcl_printf
 
@@ -107,10 +107,25 @@ do_ckt:
 		"1", node(ckt->i[j].nodes[0]),
 		"2", node(ckt->i[j].nodes[1]));
       }
+
+      /* Loop through circuit subcircuit calls, where those	*/
+      /* calls are not defined within the file and are assumed	*/
+      /* to be primitives (this may require more checking---may	*/
+      /* need to remove the x[] records when they are expanded	*/
+
+      for (j = 0; j < ckt->nx; j++)
+      {
+	 AddNTermModule(ckt->x[j].deck->card->str,
+		ckt->x[j].rest->str, 0);
+
+	 for (i = 0; i < ckt->x[j].nn; i++)
+	     AddModuleTerm(ckt->x[j].rest->str, node(ckt->x[j].nodes[i]), i);
+      }
+
    }
 
    /* kludge for getting the top-level circuit */
-   if (ckt == spice->ckt) return 0;
+   if (ckt == spice->ckt) return;
    else {
       ckt = spice->ckt;
       goto do_ckt;

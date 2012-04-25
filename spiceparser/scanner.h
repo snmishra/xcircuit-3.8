@@ -29,11 +29,11 @@
 
 
 #ifndef __MEMORY_H__
-#include "struct.lib/memory.h"
+#include "memory.h"
 #endif
 
 #ifndef __NAMES_H__
-#include "struct.lib/names.h"
+#include "names.h"
 #endif
 
 /* we provide a consistent way for tools to read large text files

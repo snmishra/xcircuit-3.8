@@ -35,7 +35,7 @@ enum ModuleType { UNKNOWN_ASG, CAPACITOR_ASG, INDUCTOR_ASG, RESISTOR_ASG,
 #define GATE_NULL_STR   "NL_GATE"
 
 
-int xc_print_asg_module(Clientdata *areastruct, module *m);
+int xc_print_asg_module(XCWindowData *areastruct, module *m);
 
 char *toString(int mt);
 int toModuleType(char *mtName);

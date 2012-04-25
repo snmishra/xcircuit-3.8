@@ -76,8 +76,8 @@ my_calloc(size_t nmemb, size_t size)
 error(s1, s2)
     char *s1, *s2;
 {
-    fprintf(stderr, "ERROR, line %d: %s\n\t%s\n", lcount, s1, s2);
-    fflush(stderr);
+    Fprintf(stderr, "ERROR, line %d: %s\n\t%s\n", lcount, s1, s2);
+    Flush(stderr);
     
 }
 
@@ -823,7 +823,7 @@ int fix_pin_position(m, nn, x, y)
     }
     else 
     {
-	fprintf(stderr, "Bad netname %s trying to be fixed for module %s\n",
+	Fprintf(stderr, "Bad netname %s trying to be fixed for module %s\n",
 		nn, m->name);
     }
 }

@@ -132,7 +132,7 @@ int validate(s)
 
 /*------------------------------------------------------------------------ */
 
-int xc_print_asg_module(Clientdata *areastruct, module *m)
+int xc_print_asg_module(XCWindowData *areastruct, module *m)
 {
     int type, n, i;
     float arcLen, noOfExtensions, fractional, theta, mid_y, mid_x;

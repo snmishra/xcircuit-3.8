@@ -38,11 +38,11 @@ Conrad Ziesler
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "makeutils.lib/debug.h"
+#include "debug.h"
 
 #define __NETLIST_PRIVATE__
-#include "netlist.lib/netlist.h"
-#include "struct.lib/mergedup.h"
+#include "netlist.h"
+#include "mergedup.h"
 
 
 /* call these at entry and exit of all netlist functions that potentially modify equations */

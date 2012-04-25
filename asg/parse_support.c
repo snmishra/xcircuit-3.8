@@ -177,6 +177,40 @@ void AddNTermModule(char *name, char *type, int N, ...)
    va_end(args);
 }
 
+/*--------------------------------------------------------------*/
+/* Handle modules with an abitrary number of terminals in the	*/
+/* following way:  AddNTermModule() is called with N = 0 to	*/
+/* create curobj_module (which is global).  Then, for each pin,	*/
+/* the routine AddModuleTerm() is called to associate a net	*/
+/* with each pin, in turn.					*/
+/*--------------------------------------------------------------*/
+
+/*--------------------------------------------------------------*/
+/* For the moment, pins will be named "1", "2", etc.  To do:	*/
+/* look up the object having a name matching "type".  Confirm	*/
+/* a match in the number of pins N, and then pick up the pin	*/
+/* names from the object itself.  Presumably this is done by	*/
+/* assuming that the object has an info label "spice:..." and	*/
+/* using that.  It is the responsibility of the user to ensure	*/
+/* that the library used to represent primitives in the spice	*/
+/* deck contains the correct number and order of pins.		*/
+/*--------------------------------------------------------------*/
+
+void AddModuleTerm(char *type, char *netName, int portnum)
+{
+   net *pNet;
+   char pinname[5];
+
+   pNet = get_net(netName);
+   
+   // If Input Node does not exist in the global database
+   if (pNet == NULL) {
+	 newnode(netName);
+   }
+   sprintf(pinname, "%d", portnum);
+   add_xc_term(type, pinname, netName, portnum);
+}
+
 /*---------------------------------------------------------------
  * END OF FILE
  *---------------------------------------------------------------

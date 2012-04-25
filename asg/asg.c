@@ -12,7 +12,7 @@ extern void spar_constructor();
 
 /*--------------------------------------------------------------------- */
 
-int xc_print_sym(Clientdata *areastruct, char *sym, char*name,
+int xc_print_sym(XCWindowData *areastruct, char *sym, char*name,
     int x, int y, int x_dis, int y_dis, int rot)
 {
     asg_make_instance(areastruct, sym, x, y, x_dis, y_dis);
@@ -27,7 +27,7 @@ int xc_print_sym(Clientdata *areastruct, char *sym, char*name,
 /* instance.								*/
 /*----------------------------------------------------------------------*/
 
-int asg_make_instance(Clientdata *clientData, char *keyword, int x,
+int asg_make_instance(XCWindowData *clientData, char *keyword, int x,
 	int y, int x_size, int y_size)
 {
    objectptr pobj;
@@ -72,7 +72,6 @@ int asg_make_instance(Clientdata *clientData, char *keyword, int x,
    // Assign just position for now 
 
    (*newinst)->position = newpos;
-   clientData->topinstance->thisobject->parts++;
    return 0;
 }
 
@@ -80,7 +79,7 @@ int asg_make_instance(Clientdata *clientData, char *keyword, int x,
 /* This function draws the path connecting the object on the screen	*/
 /*----------------------------------------------------------------------*/
 
-void asg_make_polygon(Clientdata *clientData, int npoints, int x[], int y[])
+void asg_make_polygon(XCWindowData *clientData, int npoints, int x[], int y[])
 {
    polyptr *newpoly;
    int j;
@@ -92,7 +91,6 @@ void asg_make_polygon(Clientdata *clientData, int npoints, int x[], int y[])
       (*newpoly)->points[j].x = x[j];
       (*newpoly)->points[j].y = y[j];
    }
-   clientData->topinstance->thisobject->parts++;
    /* singlebbox((genericptr *)newpoly); */
    incr_changes(clientData->topinstance->thisobject);
 }
@@ -101,7 +99,7 @@ void asg_make_polygon(Clientdata *clientData, int npoints, int x[], int y[])
 /* This function helps print the label of the object on the screen	*/
 /*----------------------------------------------------------------------*/
 
-void asg_make_label(Clientdata *clientData, u_char dopin, int x, int y, char *data)
+void asg_make_label(XCWindowData *clientData, u_char dopin, int x, int y, char *data)
 {
    labelptr *newlab;
    stringpart *strptr;	
@@ -113,7 +111,6 @@ void asg_make_label(Clientdata *clientData, u_char dopin, int x, int y, char *da
    strptr = makesegment(&((*newlab)->string), NULL);
    strptr->type = TEXT_STRING;
    strptr->data.string = data;
-   clientData->topinstance->thisobject->parts++;
    singlebbox((genericptr *)newlab);
    incr_changes(clientData->topinstance->thisobject);
 }
