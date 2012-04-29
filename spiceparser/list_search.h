@@ -27,7 +27,7 @@
 #define __LIST_SEARCH_H__
 
 #ifndef __LIST_H__
-#include "struct.lib/list.h"
+#include "list.h"
 #endif
 
 typedef struct list_psearch_st

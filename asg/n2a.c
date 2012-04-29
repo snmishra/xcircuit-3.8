@@ -195,12 +195,23 @@ int separate_systerms(intModules, sysModules, sysNets)
 }	
 
 /*--------------------------------------------------------------*/
+/* Routine to set the debug level from an external routine.	*/
+/*--------------------------------------------------------------*/
+
+int SetDebugLevel(int *level)
+{
+    if (level != NULL)
+       debug_level = *level;
+    return debug_level;
+}
+
+/*--------------------------------------------------------------*/
 /* Route --							*/
 /*								*/
 /* This method is used to route all the modules.... 		*/
 /*--------------------------------------------------------------*/
 
-void Route(Clientdata *areastruct, Boolean bIsSparmode) 
+void Route(XCWindowData *areastruct, Boolean bIsSparmode) 
 {
     FILE *timingFile;
     int c,  errflg = 0, x1, y1, x2, y2;

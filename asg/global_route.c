@@ -3445,7 +3445,7 @@ return_best_trails_to_arcs(n,expnsToReroute, part)
 
 reset_all_trail_costs(nets, part)
     nlist *nets;
-    int part;		/* Not used */
+    int part;
 {
     /* This resets the trail costs for the entire seasg_arch space. */
     asg_arc *ar;
@@ -3949,7 +3949,7 @@ nlist *first_global_route(ml, p, onceOnly, congestionRule)
 
     if (onceOnly == FALSE)
     {
-	reset_all_trail_costs(ActiveNets);
+	reset_all_trail_costs(ActiveNets, p);
 
 	/* Remove any dummy terminals from the master netlist, as they can 
 	   cause problems: */
@@ -4029,7 +4029,7 @@ nlist *incremental_global_route(newMods, modsSoFar, oldNets, p)
 
     first_cut(expns, p);
 
-    reset_all_trail_costs(ActiveNets);
+    reset_all_trail_costs(ActiveNets, p);
 
     if (debug_level >= 3) fprintf(stderr, "...First Cut at Incremental GR Completed.\n");
 

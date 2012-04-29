@@ -27,7 +27,16 @@
 #include <math.h>
 #include <ctype.h>
 #include <stdio.h>
-#include "makeutils.lib/debug.h"
+#include "debug.h"
+
+/* The following is copied from xcircuit.h */
+#ifdef TCL_WRAPPER
+  #define Fprintf tcl_printf
+  #define Flush tcl_stdflush
+#else
+  #define Fprintf fprintf
+  #define Flush fflush
+#endif
 
 
 int __debug_spice__=2;
@@ -58,13 +67,13 @@ X1464  3  583  589  CKT6
 
 
 #ifndef __NETLIST_H__
-#include "netlist.lib/netlist_dev.h"
+#include "netlist_dev.h"
 #endif
 
 
 
 #ifndef __NETLIST_SPICE_H__
-#include "netlist.lib/netlist_spice.h"
+#include "netlist_spice.h"
 #endif
 
 tokenmap_t spice_tokens[]=SPICE_TOKENS;
@@ -187,7 +196,7 @@ static nodeclient_t *add_hashtab(hash_t *tab, uchar *str, hashload_t payload)
   assert(l< (16000-sizeof(nodeclient_t)));
   if(tab->hashfunc!=nodeclient_hash)assert(0);
   cp=hash_add(tab,nd,(sizeof(hashload_t)+l));
-  D(20,fprintf(stderr,"add_hashtab(%p,%s,..) cp=%p \n",tab,str,cp));  
+  D(20,Fprintf(stderr,"add_hashtab(%p,%s,..) cp=%p \n",tab,str,cp));  
   return cp;
 }
 
@@ -336,7 +345,7 @@ static subckt_t *new_subckt(deck_t **thedeckpp, subckt_t *parent, scanner_t *sca
       {
 	/*
 	uchar *p,buf[64]=".END  ";
-	D(50,fprintf(stderr,"ignoring lack of .END token\n"));
+	D(50,Fprintf(stderr,"ignoring lack of .END token\n"));
 	assert(dplast!=NULL);
 	assert(dplast->next==NULL);
 	dp=dplast->next=new_deck();
@@ -353,7 +362,7 @@ static subckt_t *new_subckt(deck_t **thedeckpp, subckt_t *parent, scanner_t *sca
       }
   }
 
-  D(10, fprintf(stderr,"Got %i subckts, %i x's %i m's %i c's %i r's "
+  D(10, Fprintf(stderr,"Got %i subckts, %i x's %i m's %i c's %i r's "
 		"%i l %i v %i i's\n",
 		qtysubckt, qtyx, qtym, qtyc, qtyr, qtyl, qtyv, qtyi));
 
@@ -525,7 +534,7 @@ static subckt_t *new_subckt(deck_t **thedeckpp, subckt_t *parent, scanner_t *sca
 	  for(i=0,cp=dp->card->next;(cp!=NULL)&&(cp!=last);cp=cp->next,i++)
 	   {
 	     xp->nodes[i]=add_hashtab(scktp->nodes,cp->str,payload);
-	     if(0)fprintf(stderr,"X:%s  adding node %p cp->str=%s\n",dp->card->str,xp->nodes[i],cp->str);
+	     if(0)Fprintf(stderr,"X:%s  adding node %p cp->str=%s\n",dp->card->str,xp->nodes[i],cp->str);
 	   }
 	  if(cp!=NULL)
 	    {
@@ -564,7 +573,7 @@ static subckt_t *new_subckt(deck_t **thedeckpp, subckt_t *parent, scanner_t *sca
 	    }
 	  if(mp->type==0)
 	    {
-	      fprintf(stderr,"Couldn't determine fet type from model name %s\n",cp->str);
+	      Fprintf(stderr,"Couldn't determine fet type from model name %s\n",cp->str);
 	    }
 
 	  mp->rest=cp;
@@ -680,7 +689,7 @@ static subckt_t *new_subckt(deck_t **thedeckpp, subckt_t *parent, scanner_t *sca
 	  { 
 	    if(cp->val==NULL)error(dp,cp,"couldn't find = in .param statement"); 	    
 	    add_param(scktp->params,cp->str,parseval(dp,cp,cp->val));
-	    D(10, fprintf(stderr, "spice: adding param %s to scktp->params=%p \n",
+	    D(10, Fprintf(stderr, "spice: adding param %s to scktp->params=%p \n",
 			cp->str, scktp->params));
 	  }
 
@@ -737,12 +746,14 @@ static void do_subckts(subckt_t *ckt, scanner_t *scan)
 	    if( (hcp=find_hashtab(search->cktdir,nm)) != NULL) break;
 	}
       if(hcp==NULL)
-	{ fprintf(stderr,"subcircuit named [%s] not found in ckt [%s]\n",nm,ckt->name); exit(1); }
-      
-      assert(hcp->payload.flag==PAYLOAD_subckt);
-      xp->xp=hcp->payload.data.subckt;
-      assert(xp->xp!=NULL);
-      do_subckts(xp->xp,scan); /* recursion */
+	{ Fprintf(stderr,"subcircuit named [%s] not found in ckt [%s]\n",	
+			nm,ckt->name); }
+      else {
+         assert(hcp->payload.flag==PAYLOAD_subckt);
+         xp->xp=hcp->payload.data.subckt;
+         assert(xp->xp!=NULL);
+         do_subckts(xp->xp,scan); /* recursion */
+      }
     }
 
 }
@@ -890,7 +901,7 @@ static char * do_name(stack_t *s, char *str)
   int l,q=0,sizebuf=sizeof(buf);
   int m;
 
-  D(10,fprintf(stderr,"doname: [%s] ",str));
+  D(10,Fprintf(stderr,"doname: [%s] ",str));
   
   m=sizebuf -4;
   buf[sizebuf-1]=0;
@@ -914,7 +925,7 @@ static char * do_name(stack_t *s, char *str)
       bp-=l;
       memcpy(bp,c,l);
     }
-  D(10,fprintf(stderr,"(%s)\n",bp));
+  D(10,Fprintf(stderr,"(%s)\n",bp));
   return bp;
 }
 
@@ -940,9 +951,9 @@ static paramclient_t * find_param_intable(hash_t *h, char *str)
  tofind=(void *)(str-sizeof(paramload_t));
  
  l=strlen(str)+1;
- D(30,fprintf(stderr,"looking for %s in table %p l=%i ",str,h,l));
+ D(30,Fprintf(stderr,"looking for %s in table %p l=%i ",str,h,l));
  pc=hash_find(h,tofind,sizeof(paramload_t)+l);
- D(30,fprintf(stderr," hash_find=%p\n",pc));
+ D(30,Fprintf(stderr," hash_find=%p\n",pc));
  return pc;
 }
 
@@ -1013,9 +1024,9 @@ static eqn_litref_t lookup_function(plookup_t *user, char *str)
 	      /* todo: lookup this param=equation now, in case it has dependencies */
 	      eqn_t eq;
 	      hname=do_name(me->sp,str);
-	      D(5,fprintf(stderr,"Lookup function: Adding eqn (%s) (%s)\n",str,hname));
+	      D(5,Fprintf(stderr,"Lookup function: Adding eqn (%s) (%s)\n",str,hname));
 	      D(5,debug_eqn(stderr,str,&(r->payload.eqn)));
-	      D(5,fprintf(stderr,"\n"));
+	      D(5,Fprintf(stderr,"\n"));
 	      eq=lookup_params_nomult(me->sp,&(r->payload.eqn));
 	      r->payload.global_i=eqnl_add(&(me->nl->eqnl),eq,hname);
 	    }
@@ -1025,13 +1036,13 @@ static eqn_litref_t lookup_function(plookup_t *user, char *str)
 	{  /* also note we probably want to call lookup params now
 	      using parent's context for subckt call
 	   */
-	  D(50,fprintf(stderr,"Lookup rename: %s\n",str));
+	  D(50,Fprintf(stderr,"Lookup rename: %s\n",str));
 	  D(50,debug_eqn(stderr,"    eqn ",&(r->payload.patch_call->eqn)));
-	  D(50,fprintf(stderr,"\n"));
+	  D(50,Fprintf(stderr,"\n"));
 	  if(r->payload.global_i<0)
 	    {
 	      hname=do_name(me->sp,str);
-	      D(5,fprintf(stderr,"Lookup function rename: Adding eqn (%s) (%s)\n",str,hname));
+	      D(5,Fprintf(stderr,"Lookup function rename: Adding eqn (%s) (%s)\n",str,hname));
 	      D(5,debug_eqn(stderr,"    eqn ",&(r->payload.patch_call->eqn)));
 	      r->payload.global_i=eqnl_add(&(me->nl->eqnl),
 					   lookup_parents_call_eqns(me->sp, &(r->payload.patch_call->eqn)),
@@ -1045,10 +1056,10 @@ static eqn_litref_t lookup_function(plookup_t *user, char *str)
       index=eqnl_find(&(me->nl->eqnl),str);
       if(index<0)
 	{
-	  D(3,fprintf(stderr,"Netlist_sp: assuming %s is global sweep parameter\n",str));
+	  D(3,Fprintf(stderr,"Netlist_sp: assuming %s is global sweep parameter\n",str));
 	  index= eqnl_add(&(me->nl->eqnl),eqn_undefined(),str);
 	}
-      else D(3,fprintf(stderr,"Netlist_sp: assume %s is a global parameter, not local\n",str));
+      else D(3,Fprintf(stderr,"Netlist_sp: assume %s is a global parameter, not local\n",str));
     }
   return index;
 }
@@ -1069,11 +1080,11 @@ static eqn_t lookup_parents_call_eqns(stack_t *s, eqn_t *ep)
       plu.lookup=lookup_function;
       v=eqn_copy(*ep);
       D(10,debug_eqn(stderr,"lookup parents:", &v));
-      D(10,fprintf(stderr,"\n"));
+      D(10,Fprintf(stderr,"\n"));
       r=eqntok_depend(v.eqn,&plu);
-      if(r)D(1,fprintf(stderr,"couldn't find a parameter in equation\n"));
+      if(r)D(1,Fprintf(stderr,"couldn't find a parameter in equation\n"));
     }
-  else D(1,fprintf(stderr,"lookup parents eqn called, but we are at the top level\n"));
+  else D(1,Fprintf(stderr,"lookup parents eqn called, but we are at the top level\n"));
   assert(s->parent!=NULL);
   return v;
 }
@@ -1094,7 +1105,7 @@ static eqn_t lookup_params_nomult(stack_t *s, eqn_t *ep)
   if(v.eqn!=NULL)
     r=eqntok_depend(v.eqn,&plu);
   
-  if(r)D(1,fprintf(stderr,"couldn't find a parameter in equation\n"));
+  if(r)D(1,Fprintf(stderr,"couldn't find a parameter in equation\n"));
 
  return v;
 
@@ -1117,7 +1128,7 @@ static eqn_t lookup_params(stack_t *s, eqn_t *ep, float m)
   if(v.eqn!=NULL)
     r=eqntok_depend(v.eqn,&plu);
   
-  if(r)D(1,fprintf(stderr,"couldn't find a parameter in equation\n"));
+  if(r)D(1,Fprintf(stderr,"couldn't find a parameter in equation\n"));
 
  return v;
 }
@@ -1153,7 +1164,7 @@ static void build_stuff(stack_t *s, int flag, void *data)
   globals=s->top->ckt->global;
   s->nl=nl;
 
-  D(40,fprintf(stderr,"processing stack %p: s->top=%p s->parent=%p s->ckt=%p\n",s,s->top,s->parent,s->ckt));
+  D(40,Fprintf(stderr,"processing stack %p: s->top=%p s->parent=%p s->ckt=%p\n",s,s->top,s->parent,s->ckt));
 
   /* first assign parent payloads to all the nodes in nodedir */
   if(s->parent!=NULL)
@@ -1181,7 +1192,7 @@ static void build_stuff(stack_t *s, int flag, void *data)
       hash_forall(h1,i,bp) /* init patch ptrs to Null (so any previous invokation won't be used) */
 	{
 	  pc=hash_bin2user(bp); pc->payload.patch_call=NULL; pc->payload.global_i=-1;
-	  D(30,fprintf(stderr,"considering hash table entry %i %s len=%i\n",i,pc->str,bp->size-sizeof(paramload_t)));
+	  D(30,Fprintf(stderr,"considering hash table entry %i %s len=%i\n",i,pc->str,bp->size-sizeof(paramload_t)));
 	}
       
       /* for each param in the x call line, patch local param if found */
@@ -1197,12 +1208,12 @@ static void build_stuff(stack_t *s, int flag, void *data)
 	  if(findpc!=NULL) /* we link to this subckt eqn call */
 	    findpc->payload.patch_call=callp;
 	  else
-	    D(2,fprintf(stderr,"subckt call, specified parameter [%s] not found\n",callp->str));
+	    D(2,Fprintf(stderr,"subckt call, specified parameter [%s] not found\n",callp->str));
 	 
-	  D(5,fprintf(stderr,"patching call %s",callp->str));
+	  D(5,Fprintf(stderr,"patching call %s",callp->str));
 	  if(findpc!=NULL)D(5,debug_eqn(stderr,"   orig ",&(findpc->payload.eqn)));
 	  D(5,debug_eqn(stderr,"   patch ",&(callp->eqn)));
-	  D(5,fprintf(stderr,"\n"));
+	  D(5,Fprintf(stderr,"\n"));
 	}
     }
   
@@ -1297,7 +1308,7 @@ static void build_stuff(stack_t *s, int flag, void *data)
       D(30,do 
       {
 	static int mosfet_i=0;
-	fprintf(stderr,"processing mosfet %i \n",++mosfet_i);
+	Fprintf(stderr,"processing mosfet %i \n",++mosfet_i);
       } while(0)
 	);
       

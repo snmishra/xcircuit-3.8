@@ -60,12 +60,12 @@ Conrad Ziesler
 
 #include <stdio.h>
 #include <math.h>
-#include "makeutils.lib/debug.h"
+#include "debug.h"
 
-#include "netlist.lib/netlist_extract.h"
+#include "netlist_extract.h"
 
 #ifndef __NETLIST_H__
-#include "netlist.lib/netlist.h"
+#include "netlist.h"
 #endif
 
 

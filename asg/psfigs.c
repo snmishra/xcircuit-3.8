@@ -356,7 +356,7 @@ int ps_attach_interms(f, m)
 }
 /*--------------------------------------------------------------------------------- */
 int xc_attach_interms(areastruct, m)
-    Clientdata *areastruct;
+    XCWindowData *areastruct;
     module *m;
 { 	
     /* attach all of the input terminals to the gate in question.
@@ -513,7 +513,7 @@ int ps_attach_outerms(f, m)
 
 /*--------------------------------------------------------------------------------- */
 int xc_attach_outerms(areastruct, m)
-    Clientdata *areastruct;
+    XCWindowData *areastruct;
     module *m;
 { 	
     /* attach all of the output terminals to the gate in question.
@@ -544,6 +544,7 @@ int xc_attach_outerms(areastruct, m)
 
 /*--------------------------------------------------------------------------------- */
 int ps_print_contact(f, x, y)
+    FILE *f;
     float x,y;
     
 /* add the dot: */

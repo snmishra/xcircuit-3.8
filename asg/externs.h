@@ -100,8 +100,9 @@ extern int collapseNullModules ;		/* -k flag;denies kollapse of NL_GATES */
  * Defined in n2a.c
  *---------------------------------------------------------------
  */
-void GenerateXcircuitFormat(Clientdata *areastruct, FILE *ps, Boolean bIsSparmode);
-void Route(Clientdata *areastruct, Boolean bIsSparmode);
+void GenerateXcircuitFormat(XCWindowData *areastruct, FILE *ps, Boolean bIsSparmode);
+void Route(XCWindowData *areastruct, Boolean bIsSparmode);
+int  SetDebugLevel(int *level);
 int  ReadHSpice(char *fname);
 
 /*--------------------------------------------------------------- 
@@ -109,9 +110,9 @@ int  ReadHSpice(char *fname);
  *---------------------------------------------------------------
  */
 
-extern int asg_make_instance(Clientdata *, char *, int, int, int, int);
-extern void asg_make_polygon(Clientdata *, int, int x[], int y[]);
-extern void asg_make_label(Clientdata *, u_char, int, int, char *);
+extern int asg_make_instance(XCWindowData *, char *, int, int, int, int);
+extern void asg_make_polygon(XCWindowData *, int, int x[], int y[]);
+extern void asg_make_label(XCWindowData *, u_char, int, int, char *);
 
 /*--------------------------------------------------------------- 
  * Defined in parse.c
@@ -124,6 +125,7 @@ extern char *str_end_copy();
 void   AddModule(char *name, char *type, char *innode, char *outnode);
 void   Add2TermModule(char *, char *, char *, char *);
 void   AddNTermModule(char *, char *, int, ...);
+void   AddModuleTerm(char *, char *, int);
 
 /*--------------------------------------------------------------- 
  * Defined in place.c
@@ -169,7 +171,7 @@ extern int (*set_congestion_value)();
  */
 extern void local_route();
 extern void print_local_route_to_file(FILE *f, nlist *nets);
-extern void xc_print_local_route(Clientdata *areastruct, nlist *nets);
+extern void xc_print_local_route(XCWindowData *areastruct, nlist *nets);
 extern void collect_congestion_stats();
 
 /*--------------------------------------------------------------- 
@@ -178,7 +180,7 @@ extern void collect_congestion_stats();
  */
 extern int ps_print_seg();
 extern int ps_print_mod();
-extern int xc_print_mod(Clientdata *areastruct, module *m);
+extern int xc_print_mod(XCWindowData *areastruct, module *m);
 extern int ps_print_contact();
 extern int ps_print_border();
 extern int ps_put_label();

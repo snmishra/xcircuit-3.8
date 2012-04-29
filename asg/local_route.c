@@ -30,6 +30,8 @@
  * parser (parse.c) and the placer (place.c), and is thus dependent upon:	 */
 
 #include <stdio.h>
+#include <time.h>	// For ctime()
+#include <stdlib.h>	// For getenv()
 #include "route.h"
 
 /* It is expected that all modules have been placed, and that global routes have been 
@@ -86,7 +88,7 @@ ilist *crossovers = NULL;	/* Indexed list of the tiles w/ worst crossover */
 
 /* --- forward reference -------------------------------------------------------------:*/
 void write_local_route_to_file(FILE *f, nlist *nets);
-void xc_write_local_route(Clientdata *areastruct, nlist *nets);
+void xc_write_local_route(XCWindowData *areastruct, nlist *nets);
 void print_tile_spaces();
 
 /*-------------------------------------------------------------------------------------*/
@@ -4886,7 +4888,7 @@ int not_on_Net(r)
 /*-------------------------------------------------------------------------------------*/
 //ASG Code
 list *xc_extract_corner_list(cd,n)
-    Clientdata *cd;
+    XCWindowData *cd;
     net *n;
 {
     /* This loops through the corners from <n>->route, and builds a
@@ -5096,7 +5098,7 @@ void write_local_route_to_file(f, nets)
 
 /*-------------------------------------------------------------------------------------*/
 void xc_write_local_route(areastruct, nets)
-    Clientdata *areastruct;
+    XCWindowData *areastruct;
     nlist *nets;
 {
     net *n;
@@ -5166,7 +5168,7 @@ void xc_write_local_route(areastruct, nets)
 /*-------------------------------------------------------------------------------------*/
 
 void xc_print_local_route(areastruct, nets)
-    Clientdata *areastruct;
+    XCWindowData *areastruct;
     nlist *nets;
 {
     FILE *hfile, *fopen ();

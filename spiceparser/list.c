@@ -23,8 +23,8 @@
    Conrad Ziesler
 */
 
-#include "makeutils.lib/debug.h"
-#include "struct.lib/list.h"
+#include "debug.h"
+#include "list.h"
 
 /* listx, supports allocation and freeing of list elements */
 

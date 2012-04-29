@@ -32,20 +32,20 @@
 /* #define NO_EQUATIONS */
 
 /*#ifndef __FILE_H__
-#include "appmisc.lib/file.h"
+#include "file.h"
 #endif
 */
 
 #ifndef __LIST_H__
-#include "struct.lib/list.h"
+#include "list.h"
 #endif
 
 #ifndef __NAMES_H__
-#include "struct.lib/names.h"
+#include "names.h"
 #endif
 
 #ifndef __HASH_H__
-#include "struct.lib/hash.h"
+#include "hash.h"
 #endif
 
 

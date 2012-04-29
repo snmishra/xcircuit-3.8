@@ -30,15 +30,15 @@
 #define __NETLIST_SPICE_H__
 
 #ifndef __EQN_H__
-#include "equations.lib/eqn.h"
+#include "eqn.h"
 #endif
 
 #ifndef __HASH_H__
-#include "struct.lib/hash.h"
+#include "hash.h"
 #endif
 
 #ifndef __SCANNER_H__
-#include "parsers.lib/scanner.h"
+#include "scanner.h"
 #endif
 
 
