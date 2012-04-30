@@ -1871,9 +1871,15 @@ void importspice()
       xc_tilde_expand(_STR, 149);
       sscanf(_STR, "%149s", inname);
       spcfile = fopen(inname, "r");
-      ReadSpice(spcfile);
-      Route(areawin, False);
-      fclose(spcfile);
+      if (spcfile != NULL) {
+         ReadSpice(spcfile);
+         Route(areawin, False);
+         fclose(spcfile);
+      }
+      else {
+         Wprintf("Error:  Spice file not found.");
+	 return;
+      }
    }
    else {
       Wprintf("Error:  No spice file to read.");

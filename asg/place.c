@@ -1076,7 +1076,8 @@ mlist *longest_path_in_part(p)
 
     for (ml = partitions[p]; ml != NULL; ml = ml->next)
     {
-	if (ml->this->placed == FALSE)
+	// if (ml->this->placed == FALSE)
+	if (ml->this->placed == UNPLACED)
 	{
 	    path = longest_path(ml->this, p, bestLen, &len);
 	    if (len > bestLen) 

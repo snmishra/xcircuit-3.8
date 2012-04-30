@@ -252,6 +252,7 @@ void Route(XCWindowData *areastruct, Boolean bIsSparmode)
 	systerms = make_room_for_systerm_placement(&systermNets, &x1, &y1, &x2, &y2);
 	fprintf(stderr,"\nAutomatic placement ");
     }
+    fprintf(stderr, "completed.\n");
     
     if (includeSysterms == TRUE) {
 
