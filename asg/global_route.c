@@ -2839,7 +2839,7 @@ int make_next_best_move(ex, trailsCompleted)
 		    ex->n->name, ex->t->name, ex->t->mod->name);
 	    /* Treat this as an error condition and abort */
 	    /* (previously, routine continued, but is in infinite loop at this point) */
-	    return -1;
+	    /* return -1; */
 	}
     }
 

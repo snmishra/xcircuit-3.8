@@ -253,7 +253,7 @@ void Route(XCWindowData *areastruct, Boolean bIsSparmode)
 	fprintf(stderr,"\nAutomatic placement ");
     }
     fprintf(stderr, "completed.\n");
-    
+
     if (includeSysterms == TRUE) {
 
 	/* routing */
@@ -332,6 +332,15 @@ void Route(XCWindowData *areastruct, Boolean bIsSparmode)
     }
     else if (do_routing == TRUE) {
 
+	/* TEST! Tim 4/30/2012 --- put a large buffer area around the	*/
+	/* area.  Area calculation seems to assume that lower bound is	*/
+	/* zero and _sizes seem to be calculated from zero to max so	*/
+	/* that negative numbers are not represented.  Below is just a	*/
+	/* hack---we need to calculate the bounding box of the space	*/
+	/* needed for the routing, correctly.				*/
+
+	xfloor = yfloor = -72;
+
 	/* No terminals are to be placed, hence no incremental routing. */
 
 	routingRoot[VERT] = (tile **)calloc(partition_count + 3, sizeof(tile *));
@@ -340,8 +349,9 @@ void Route(XCWindowData *areastruct, Boolean bIsSparmode)
 	fprintf(stderr,"Adding modules to routing space, Global Routing commenced...");
 
 	create_routing_space(modulesJustPlaced, currentPartition,
-			     x_sizes[currentPartition], y_sizes[currentPartition], 
-			     xfloor, yfloor);
+			x_sizes[currentPartition] - xfloor,
+			y_sizes[currentPartition] - yfloor, 
+			xfloor, yfloor);
 
 	nl = first_global_route(modulesJustPlaced, currentPartition, 
 				FALSE, congestion_rule);  
