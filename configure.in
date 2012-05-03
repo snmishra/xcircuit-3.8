@@ -430,6 +430,8 @@ if test "x$xc_with_tcl" != "x" ; then
        /usr/local \
        `ls -dr /usr/share/tcltk/tcl[[7-9]].[[0-9]]* 2>/dev/null` \
        /sw/lib \
+       /usr/lib \
+       /usr/lib64 \
        /usr
       do
         if test -r "$dir/tclConfig.sh" ; then
@@ -521,6 +523,8 @@ if test "x$xc_with_tcl" != "x" ; then
        `ls -dr /usr/local/tcl/tcl[[7-9]].[[0-9]]* 2>/dev/null` \
        `ls -dr /usr/share/tcltk/tk[[7-9]].[[0-9]]* 2>/dev/null` \
        /sw/lib \
+       /usr/lib \
+       /usr/lib64 \
        ${x_libraries}
       do
         if test -r "$dir/tkConfig.sh" ; then
