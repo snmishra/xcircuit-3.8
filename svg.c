@@ -6,11 +6,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef XC_WIN32
 #include <unistd.h>
+#endif
 #include <math.h>
 #include <limits.h>
 #include <sys/stat.h>
+#ifndef XC_WIN32
 #include <sys/wait.h>
+#else
+#include <process.h>
+#endif
 
 #ifndef _MSC_VER
 #include <X11/Intrinsic.h>
@@ -201,7 +207,9 @@ void SVGCreateImages(int page)
        u_long i;
     } pixel;
     char *fname, outname[128], *pptr;
+#ifndef XC_WIN32
     pid_t pid;
+#endif
 
     /* Check which images are used on this page */
     glist = (short *)malloc(xobjs.images * sizeof(short));
@@ -237,12 +245,17 @@ void SVGCreateImages(int page)
        else
 	  strcat(outname, ".png");
 
+#ifndef XC_WIN32
        if ((pid = vfork()) == 0) {
 	  execlp("convert", "convert", fname, outname, NULL);
 	  exit(0);  	/* not reached */
        }
        waitpid(pid, NULL, 0);
        unlink(fname);
+#else
+       _spawnl(_P_WAIT, GM_EXC, GM_EXEC, "convert", fname, outname, NULL);
+       _unlink(fname);
+#endif
        Fprintf(stdout, "Generated standalone PNG image file %s\n", outname);
     }
     free(glist);
