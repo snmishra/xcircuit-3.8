@@ -31,3 +31,5 @@ spiceparser/Makefile.in
 spiceparser/sp.pxd
 spiceparser/spiceparser.dll
 spiceparser/spiceparser.pyc
+Makefile.in
+configure
