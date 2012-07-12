@@ -6288,6 +6288,7 @@ int xctcl_config(ClientData clientData, Tcl_Interp *interp,
 	 break;
 
       case DebugIdx:
+#ifdef ASG
 	 if (objc == 3) {
 	    result = Tcl_GetIntFromObj(interp, objv[2], &tmpint);
 	    if (result != TCL_OK) return result;
@@ -6296,7 +6297,9 @@ int xctcl_config(ClientData clientData, Tcl_Interp *interp,
 	 else {
 	    Tcl_SetObjResult(interp, Tcl_NewIntObj(SetDebugLevel(NULL)));
 	 }
+#endif
 	 break;
+
 
       case InitIdx:
 	 /* Create a data structure for a new drawing window. */

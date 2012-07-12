@@ -190,11 +190,11 @@
 
 #define MAX_MOD	256	/* maximum number of modules */
 
-#define CHANNEL_HEIGHT 4
-#define CHANNEL_LENGTH 4
+#define CHANNEL_HEIGHT 48
+#define CHANNEL_LENGTH 48
 #define MAX_DEPTH 12	/* maximum length of module box string */
-#define WHITE_SPACE 3  	/* multiplier * # terms on a side for routing space */
-#define CC_SPACE 4  	/* min routing space between cross-coupled modules*/
+#define WHITE_SPACE 36 	/* multiplier * # terms on a side for routing space */
+#define CC_SPACE 48  	/* min routing space between cross-coupled modules*/
 
 /* 
  * Rents rule: SIZE = A |Connections| ** B with  .5 < A < 5 and .4 < B < .8 

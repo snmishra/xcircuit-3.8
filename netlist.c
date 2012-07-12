@@ -3500,6 +3500,96 @@ LabellistPtr geninfolist(objectptr cschem, objinstptr cinst, char *mode)
 }
 
 /*----------------------------------------------------------------------*/
+/* Trivial default pin name lookup.  Parse an object's pin labels for	*/
+/* pin names.  Return the text of the nth pin name, as counted by the	*/
+/* position in the object's parts list.  If there are fewer than (n+1)	*/
+/* pin labels in the object, return NULL.  Otherwise, return the pin	*/
+/* name in a malloc'd character string which the caller must free.	*/
+/*----------------------------------------------------------------------*/
+
+char *defaultpininfo(objinstptr cinst, int pidx)
+{
+   genericptr *pgen;
+   labelptr plabel;
+   objectptr cschem = cinst->thisobject;
+   int count = 0;
+   char *stxt;
+
+   for (pgen = cschem->plist; pgen < cschem->plist + cschem->parts; pgen++) {
+      if (IS_LABEL(*pgen)) {
+	 plabel = TOLABEL(pgen);
+         if (plabel->pin == LOCAL) {
+	    if (count == pidx) {
+	       stxt = textprint(plabel->string, cinst);
+	       return stxt;
+	    }
+	    count++;
+	 }
+      }
+   }
+   return NULL;
+}
+
+/*----------------------------------------------------------------------*/
+/* Parse an object's info labels for pin names.  This is *not* a	*/
+/* netlist function.  The nth pin name is returned, or NULL if not	*/
+/* found.  Return value is a malloc'd string which the caller must	*/
+/* free.								*/
+/*----------------------------------------------------------------------*/
+
+char *parsepininfo(objinstptr cinst, char *mode, int pidx)
+{
+   genericptr *pgen;
+   labelptr plabel;
+   u_char *strt, *fnsh;
+   int slen, i, locpos;
+   objectptr cschem = cinst->thisobject;
+   stringpart *strptr;
+   char *sout;
+   int count = 0;
+
+   for (pgen = cschem->plist; pgen < cschem->plist + cschem->parts; pgen++) {
+      if (IS_LABEL(*pgen)) {
+	 plabel = TOLABEL(pgen);
+         if (plabel->pin == INFO) {
+	    slen = stringlength(plabel->string, True, cinst);
+	    for (i = 1; i < slen; i++) {
+	       strptr = findstringpart(i, &locpos, plabel->string, cinst);
+	       if (locpos >= 0 && *(strptr->data.string + locpos) == ':') break;
+	    }
+	    /* Currently we are not checking against "mode". . .*/
+	    /* interpret all characters after the colon 	*/
+
+	    for (++i; i < slen; i++) {
+	       strptr = findstringpart(i, &locpos, plabel->string, cinst);
+	       if (locpos >= 0) {
+
+		  /* Do for all text characters */
+		  strt = strptr->data.string + locpos;
+		  if (*strt == '%') {
+		     strt++;
+		     i++;
+		     if (*strt == 'p') {	/* Pin found! */
+			if (count == pidx) {	/* Get pin text */
+			   strt++;
+			   fnsh = strt + 1;
+			   while (*fnsh != ' ' && *fnsh != '\0') fnsh++;
+			   sout = malloc(fnsh - strt + 1);
+			   strncpy(sout, strt, fnsh - strt);
+			   return sout;
+			}
+			count++;
+		     }
+		  }
+	       }
+	    }
+	 }
+      }
+   }
+   return NULL;
+}
+
+/*----------------------------------------------------------------------*/
 /* Look for information labels in the object parts list.  Parse the	*/
 /* information labels and print results to specified output device.	*/
 /* (This is not very robust to errors---needs work!)			*/

@@ -242,7 +242,7 @@ void newnode(name)
 
 
     node = (net *)calloc(1, sizeof(net));
-    node->rflag = NULL;	/* Added 11-3-90 stf;  Used in Global Router */
+    node->rflag = 0;		/* Added 11-3-90 stf;  Used in Global Router */
     node->expns = NULL;    
 
     node->name = strdup(name);
@@ -565,34 +565,51 @@ default: error("add_in_out: terminal with bad direction", name);
 /* ------------------------------------------------------------------------
  * add_xc_term: add a signal to the list of terminals for a module
  * based on the XCircuit object for gate "name".
+ *
+ * If "pinName" is non-NULL, it points to a string containing the
+ * pin name.  If "pinName" is NULL, then the target symbol is
+ * searched for a SPICE info label, and the pin name is pulled
+ * from that.
  * ------------------------------------------------------------------------
  */
 
-void add_xc_term(type, pinName, netName, index)
+void add_xc_term(type, pinName, netName, index, numpins)
     char *type;
     char *pinName;
     char *netName;
     int index;
+    int numpins;
 {
     tlist *tl;
     term *tt;
     net *tn;
     objinstptr xc_inst;
-    int result, x, y, dist, mindist;
+    int result, x, y, a, b, c;
+    char *locPin;
     
     /* Get the xcircuit object name corresponding to the module */
     if (NameToObject(type, &xc_inst, FALSE) == NULL) return;
 
+    /* If the pinName is NULL, try go get the pin name from the object */
+    if (pinName == NULL) {
+	locPin = parsepininfo(xc_inst, "spice", index);
+	if (locPin == NULL) locPin = defaultpininfo(xc_inst, index);
+	if (locPin == NULL) return;	/* No pins; can't do much! */
+    }
+    else locPin = pinName;
+
     /* Find the location of the pin named "pinName" relative to the object position */
-    result = NameToPinLocation(xc_inst, pinName, &x, &y);
+    result = NameToPinLocation(xc_inst, locPin, &x, &y);
+
 
     /* Temporary hack---shift all coordinates relative to the bounding box corner */
-    x -= xc_inst->bbox.lowerleft.x;
-    y -= xc_inst->bbox.lowerleft.y;
+    /* x -= xc_inst->bbox.lowerleft.x; */
+    /* y -= xc_inst->bbox.lowerleft.y; */
 
     if (result < 0) {
-       add_in_out(netName, index, 1, 0);	/* backup behavior */
-       return;					/* Error---pin name not found */
+       if (locPin != pinName) free(locPin);
+       add_in_out(netName, index, numpins, INOUT);	/* backup behavior */
+       return;						/* if pin name not found */
     }
 
     tt = (term *)calloc(1, sizeof(term));
@@ -602,30 +619,46 @@ void add_xc_term(type, pinName, netName, index)
     tt->nt = tn;    
 
     tt->mod = curobj_module;
-    tt->name = (char *)calloc(1, TERM_NAME_SIZE);
+    if (locPin != pinName)
+       tt->name = locPin;
+    else {
+       tt->name = (char *)calloc(1, TERM_NAME_SIZE);
+       sprintf(tt->name, pinName);
+    }
 
     /* Treat all (analog) signals as "inout", but determine which side	*/
     /* is closest to the pin position.					*/
-    sprintf(tt->name, "inout_%d", index);
-    tt->type = INOUT;
+    /* sprintf(tt->name, "inout_%d", index); */ /* former behavior */
+
     tt->x_pos = x;
     tt->y_pos = y;
 
-    tt->side = LEFT;
-    mindist = x - xc_inst->bbox.lowerleft.x;
-    dist = y - xc_inst->bbox.lowerleft.y;
-    if (dist < mindist) {
-       mindist = dist;
-       tt->side = BOTTOM;
+    /* Check for position of label relative to the object center and 	*/
+    /* set value as IN/LEFT, OUT/RIGHT, etc.				*/
+    /* Divide the object's bounding box into quadrants based on		*/
+    /* diagonals through the center, and give the pin a placement LEFT	*/
+    /* (IN), RIGHT (OUT) accordingly.					*/
+
+    a = (x - xc_inst->bbox.lowerleft.x) * xc_inst->bbox.height;
+    b = (y - xc_inst->bbox.lowerleft.y) * xc_inst->bbox.width;
+    c = a - (xc_inst->bbox.width * xc_inst->bbox.height);
+
+    if ((a < b) && (c < -b)) {
+       tt->type = IN;
+       tt->side = LEFT;
     }
-    dist = xc_inst->bbox.lowerleft.y + xc_inst->bbox.height - y;
-    if (dist < mindist) {
-       mindist = dist;
+    else if (a < b) {
        tt->side = UP;
+       tt->type = INOUT;
     }
-    dist = xc_inst->bbox.lowerleft.x + xc_inst->bbox.width - x;
-    if (dist < mindist)
+    else if (c < -b) {
+       tt->side = BOTTOM;
+       tt->type = OUTIN;
+    }
+    else {
        tt->side = RIGHT;
+       tt->type = OUT;
+    }
     
     curobj_module->terms = (tlist *)concat_list(tt, curobj_module->terms);
 

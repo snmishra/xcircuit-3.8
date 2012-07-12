@@ -1301,6 +1301,9 @@ int segments_overlapped_p(c1, c2, orient)
     return(FALSE);
 }
 /*-------------------------------------------------------------------------------------*/
+/* Should check for function round() in configure. . . 	*/
+
+/*
 int round(f)
     float f;
 {
@@ -1308,6 +1311,8 @@ int round(f)
     if (f - (float)d > 0.5) return(d + 1);
     else return(d);
 }
+*/
+
 /*-------------------------------------------------------------------------------------*/
 int set_step_size(orderedRanges, newStep)
     rnglist *orderedRanges;		/* These should be ordered l->r, or b->t */

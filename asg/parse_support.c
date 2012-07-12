@@ -172,7 +172,7 @@ void AddNTermModule(char *name, char *type, int N, ...)
       if (pNet == NULL) {
 	 newnode(netName);
       }
-      add_xc_term(type, pinName, netName, i);
+      add_xc_term(type, pinName, netName, i, N);
    }
    va_end(args);
 }
@@ -196,10 +196,9 @@ void AddNTermModule(char *name, char *type, int N, ...)
 /* deck contains the correct number and order of pins.		*/
 /*--------------------------------------------------------------*/
 
-void AddModuleTerm(char *type, char *netName, int portnum)
+void AddModuleTerm(char *type, char *netName, int portnum, int allports)
 {
    net *pNet;
-   char pinname[5];
 
    pNet = get_net(netName);
    
@@ -207,8 +206,7 @@ void AddModuleTerm(char *type, char *netName, int portnum)
    if (pNet == NULL) {
 	 newnode(netName);
    }
-   sprintf(pinname, "%d", portnum);
-   add_xc_term(type, pinname, netName, portnum);
+   add_xc_term(type, NULL, netName, portnum, allports);
 }
 
 /*---------------------------------------------------------------

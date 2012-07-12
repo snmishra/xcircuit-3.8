@@ -1871,9 +1871,15 @@ void importspice()
       xc_tilde_expand(_STR, 149);
       sscanf(_STR, "%149s", inname);
       spcfile = fopen(inname, "r");
-      ReadSpice(spcfile);
-      Route(areawin, False);
-      fclose(spcfile);
+      if (spcfile != NULL) {
+         ReadSpice(spcfile);
+         Route(areawin, False);
+         fclose(spcfile);
+      }
+      else {
+         Wprintf("Error:  Spice file not found.");
+	 return;
+      }
    }
    else {
       Wprintf("Error:  No spice file to read.");
@@ -3389,6 +3395,9 @@ char *continueline(char **buffer)
    int bufsize;
 
    for (lineptr = *buffer; (*lineptr != '\n') && (*lineptr != '\0'); lineptr++);
+   /* Repair Windoze-mangled files */
+   if ((lineptr > *buffer) && (*lineptr == '\n') && (*(lineptr - 1) == '\r'))
+      *(lineptr - 1) = ' ';
    if (*lineptr == '\n') *lineptr++ = ' ';
 
    bufsize = (int)(lineptr - (*buffer)) + 256;
@@ -3589,6 +3598,8 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 
       /* because PostScript is a stack language, we will scan from the end */
       for (lineptr = buffer; (*lineptr != '\n') && (*lineptr != '\0'); lineptr++);
+      /* Avoid CR-LF at EOL added by stupid Windoze programs */
+      if ((lineptr > buffer) && *(lineptr - 1) == '\r') lineptr--;
       if (lineptr != buffer) {  /* ignore any blank lines */
          for (keyptr = lineptr - 1; isspace(*keyptr) && keyptr != buffer; keyptr--);
          for (; !isspace(*keyptr) && keyptr != buffer; keyptr--);

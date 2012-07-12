@@ -125,7 +125,7 @@ extern char *str_end_copy();
 void   AddModule(char *name, char *type, char *innode, char *outnode);
 void   Add2TermModule(char *, char *, char *, char *);
 void   AddNTermModule(char *, char *, int, ...);
-void   AddModuleTerm(char *, char *, int);
+void   AddModuleTerm(char *, char *, int, int);
 
 /*--------------------------------------------------------------- 
  * Defined in place.c
