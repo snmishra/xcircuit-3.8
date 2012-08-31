@@ -151,6 +151,13 @@ Boolean render_client(XEvent *eventPtr)
       gs_state = GS_INIT;
    } 
    else {
+      char *atomname;
+
+      atomname = XGetAtomName(dpy, eventPtr->xclient.message_type);
+      if (atomname != NULL) {
+	 fprintf(stderr, "Received client message using atom \"%s\"\n", atomname);
+	 XFree(atomname);
+      }
       return False;
    }
    return True;

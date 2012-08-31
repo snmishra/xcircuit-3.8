@@ -154,7 +154,10 @@ int XFreePixmap(Display *dpy, Pixmap pix)
 #ifndef STATIC_BUILD
 int XPutImage(Display *dpy, Drawable d, GC gc, XImage *img, int src_x, int src_y, int dest_x, int dest_y, unsigned int width, unsigned int height)
 {
-	unimplemented("XPutImage");
+	// unimplemented("XPutImage");
+
+	TkPutImage(NULL, 0, dpy, d, gc, img, src_x, src_y, dest_x, dest_y,
+			width, height);
 	return 1;
 }
 #endif
