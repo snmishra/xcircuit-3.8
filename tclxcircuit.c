@@ -7851,6 +7851,15 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 	    }
 	    usertech = TRUE;
 	 }
+	 /* And if the user technology has been saved to a file, the technology	*/
+	 /* will have a NULL string.  Also check for technology name "(user)",	*/
+	 /* although that is not supposed to happen.				*/
+
+	 else if (*nsptr->technology == '\0')
+	    usertech = TRUE;
+
+	 else if (!strcmp(nsptr->technology, "(user)"))
+	    usertech = TRUE;
       }
       else {
          Tcl_WrongNumArgs(interp, 1, objv, "<option> technology ?args ...?");

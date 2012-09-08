@@ -1234,26 +1234,33 @@ proc xcircuit::printjust {justif} {
    return $p
 }
 
+proc xcircuit::labelmakeparam {} {
+   global XCOps
+   if {[xcircuit::select] > 0} {	;# this should be true. . .
+      set XCOps(dialog) paramname
+      xcircuit::removedialogline textent2	;# default is the selected text
+      .dialog.bbar.apply configure -command \
+	 [subst {xcircuit::parameter make substring \[.dialog.textent.txt get\];\
+	 xcircuit::updateparams substring}]
+      .dialog.textent.title.field configure -text "Parameter name:"
+   }
+   .dialog.textent.txt delete 0 end
+   xcircuit::popupdialog
+}
+
 proc xcircuit::promptmakeparam {{mode substring}} {
    global XCOps
-   if {[xcircuit::select] > 0} {
-      set XCOps(dialog) paramname
-      xcircuit::removedialogline textent2
-      .dialog.bbar.apply configure -command \
-	 [subst {xcircuit::parameter make $mode \[.dialog.textent.txt get\];\
-	 xcircuit::updateparams $mode}]
-      .dialog.textent.title.field configure -text "Parameter name:"
-   } else {
-      set XCOps(dialog) paramdefault
-      xcircuit::makedialogline textent2 "Default value:"
-      .dialog.bbar.apply configure -command \
+
+   set XCOps(dialog) paramdefault
+   if {$mode == "label"} {set mode substring}
+   xcircuit::makedialogline textent2 "Default value:"
+   .dialog.bbar.apply configure -command \
 	 [subst {xcircuit::parameter make $mode \
 	 \[.dialog.textent.txt get\] \[.dialog.textent2.txt get\]; \
 	 xcircuit::removedialogline textent2; \
 	 xcircuit::updateparams $mode}]
-      .dialog.textent.title.field configure -text \
+   .dialog.textent.title.field configure -text \
 		"Parameter name:"
-   }
    .dialog.textent.txt delete 0 end
    xcircuit::popupdialog
 }
@@ -1423,6 +1430,7 @@ proc xcircuit::promptmakesymbol {{name ""}} {
 	  {if {[string first "Page " [page label]] >= 0} { \
 	  page label [.dialog.textent.txt get]}; \
 	  xcircuit::symbol make [.dialog.textent.txt get] $XCOps(library)}
+  xcircuit::removedialogline textent2
   .dialog.textent.title.field configure -text "Name for new object:"
   .dialog.textent.txt delete 0 end
   .dialog.textent.txt insert 0 $name
@@ -2421,7 +2429,7 @@ proc xcircuit::makemenus {window} {
    $m add cascade -label "Insert" -menu $m.insertmenu
    $m add cascade -label "Justification" -menu $m.justifymenu
    $m add command -label "Parameterize" \
-	-command {xcircuit::promptmakeparam}
+	-command {xcircuit::labelmakeparam}
    $m add command -label "Unparameterize" \
 	-command {xcircuit::parameter replace substring}
    $m add separator
