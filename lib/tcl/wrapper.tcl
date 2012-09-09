@@ -1256,7 +1256,7 @@ proc xcircuit::promptmakeparam {{mode substring}} {
    xcircuit::makedialogline textent2 "Default value:"
    .dialog.bbar.apply configure -command \
 	 [subst {xcircuit::parameter make $mode \
-	 \[.dialog.textent.txt get\] \[.dialog.textent2.txt get\]; \
+	 \[.dialog.textent.txt get\] \[.dialog.textent2.txt get\] -forward; \
 	 xcircuit::removedialogline textent2; \
 	 xcircuit::updateparams $mode}]
    .dialog.textent.title.field configure -text \
@@ -1391,7 +1391,7 @@ proc xcircuit::updateparams { {mode {substring numeric expression}} } {
       set p_name [lindex $i 0]
       set p_val [lindex $i 1]
       .parameter.delete.deleteparam add command -label $p_name -command \
-	 "xcircuit::parameter delete $p_name"
+	 "xcircuit::parameter delete $p_name -forward"
       .parameter.keylist insert end $p_name
       switch -- [xcircuit::parameter type $p_name -forward] {
 	 "substring" {
