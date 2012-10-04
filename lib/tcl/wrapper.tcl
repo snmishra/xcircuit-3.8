@@ -732,7 +732,7 @@ xcircuit::tag config {if {%# == 3} {
 	   editinplace {set XCWinOps($XCOps(focus),editinplace) [config editinplace]}
 	   pinpositions {set XCWinOps($XCOps(focus),pinpositions) [config pinpositions]}
 	   pinattach {set XCWinOps($XCOps(focus),pinattach) [config pinattach]}
-	   namespaces {set XCWinOps($XCOps(focus),namespaces) [config namespaces]}
+	   technologies {set XCWinOps($XCOps(focus),namespaces) [config technologies]}
 	   hold {set XCOps(hold) [config hold]}
 	   grid {catch {set XCWinOps($XCOps(focus),showgrid) [config grid]}}
 	   snap {catch {set XCWinOps($XCOps(focus),showsnap) [config snap]}}
@@ -2492,7 +2492,7 @@ proc xcircuit::makemenus {window} {
    $m2 add command -label "1/4 space" -command "xcircuit::label insert quarterspace"
    $m2 add command -label "Kern" -command "xcircuit::promptkern"
    $m2 add command -label "Character" -command "xcircuit::label insert special"
-   $m2 add command -label "Parameter" -command "xcircuit::label insert parameter"
+   $m2 add command -label "Parameter" -command "xcircuit::prompteditparams"
 
    set m2 [menu $m.justifymenu -tearoff 0]
    $m2 add radio -label "Left Justified" -variable XCWinOps(${window},jhoriz) \
@@ -2539,7 +2539,7 @@ proc xcircuit::makemenus {window} {
    $m add check -label "Show Library Namespaces" \
 	-variable XCWinOps(${window},namespaces) \
 	-onvalue true -offvalue false -command \
-	{xcircuit::config namespaces $XCWinOps($XCOps(focus),namespaces)}
+	{xcircuit::config technologies $XCWinOps($XCOps(focus),namespaces)}
 
    $m add command -label "Disable Toolbar" -command {xcircuit::toolbar disable}
    $m add check -label "Allow HOLD Mode" -variable XCOps(hold) -onvalue true \
