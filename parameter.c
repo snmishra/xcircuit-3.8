@@ -2396,11 +2396,21 @@ void unmakeparam(labelptr thislabel, stringpart *thispart)
 
    /* Delete the "PARAM_END" off of the copied string and link it into	*/
    /* the existing string.						*/
+   /* (NOTE:  If parameter is an empty string, there may be nothing	*/
+   /* before PARAM_END. . .)						*/
 
-   for (endpart = newstr; endpart->nextpart->type != PARAM_END;
-	endpart = endpart->nextpart);
-   free(endpart->nextpart);
-   endpart->nextpart = thispart->nextpart;
+   if (newstr->type != PARAM_END) {
+      for (endpart = newstr; endpart->nextpart->type != PARAM_END;
+	   endpart = endpart->nextpart);
+      free(endpart->nextpart);
+      endpart->nextpart = thispart->nextpart;
+   }
+   else {
+      endpart = newstr;
+      newstr = newstr->nextpart;
+      free(endpart);
+      endpart = NULL;
+   }
 
    /* Find the stringpart before the parameter call (if any) */
 
@@ -2416,7 +2426,7 @@ void unmakeparam(labelptr thislabel, stringpart *thispart)
    free(strptr);
 
    /* Merge strings at boundaries, if possible. */
-   mergestring(endpart);
+   if (endpart) mergestring(endpart);
    mergestring(lastpart);
 
    redrawtext(thislabel);
