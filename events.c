@@ -211,9 +211,13 @@ int changepage(short pagenumber)
       xobjs.pagelist[pagenumber] = (Pagedata *)malloc(sizeof(Pagedata));
       xobjs.pagelist[pagenumber]->filename = NULL;
       xobjs.pagelist[pagenumber]->background.name = NULL;
+      xobjs.pagelist[pagenumber]->pageinst = NULL;
 
-      for (npage = xobjs.pages; npage <= pagenumber; npage++)
-	 xobjs.pagelist[npage]->pageinst = NULL;
+      // If we skipped ahead to pagenumber, fill in the pages in between
+      for (npage = xobjs.pages; npage < pagenumber; npage++) {
+         xobjs.pagelist[npage] = (Pagedata *)malloc(sizeof(Pagedata));
+         xobjs.pagelist[npage]->pageinst = NULL;
+      }
 
       xobjs.pages = pagenumber + 1;
       makepagebutton();
@@ -4538,7 +4542,7 @@ char *checkvalidname(char *teststring, objectptr newobj)
 		  /* leading underscore.				*/
 
 		  if (strstr(pptr, "::") == NULL) {
-                     pptr = (char *)malloc(strlen((*libobj)->name) + 2);
+                     pptr = (char *)malloc(strlen((*libobj)->name) + 8);
 		     sprintf(pptr, "unref::%s", (*libobj)->name);
 		  }
 		  else {
