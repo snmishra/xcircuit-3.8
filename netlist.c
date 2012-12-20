@@ -1018,7 +1018,7 @@ void search_on_siblings(objinstptr cinst, objinstptr isib, pushlistptr schemtop,
 	 /* Transform all the way up to the level above cinst */
 	 for (psearch = schemtop; psearch != NULL; psearch = psearch->next) {
 	    subsibinst = psearch->thisinst;
-	    UTransformPoints(tmppts, tmppts, 1, subsibinst->position,
+	    UTransformPoints(tmppts, tmppts, tpoly->number, subsibinst->position,
 				subsibinst->scale, subsibinst->rotation);
 	 }
 	 searchconnect(tmppts, tpoly->number, cinst, pseek->subnets);

@@ -1960,6 +1960,11 @@ XCWindowData *GUI_init(int argc, char *argv[])
    XtAddEventHandler(top, NoEventMask, TRUE,
 	(XtEventHandler)clientmessagehandler, NULL);
 
+   /* Set the area widget width and height, center userspace (0, 0) on screen */
+   XtSetArg(wargs[0], XtNwidth, &newwin->width);
+   XtSetArg(wargs[1], XtNheight, &newwin->height);
+   XtGetValues(newwin->area, wargs, 2);
+
    /*---------------------------------------------------*/
    /* Define basic display variables 			*/
    /* Redefine win to be just the drawing area window   */
@@ -1985,12 +1990,6 @@ XCWindowData *GUI_init(int argc, char *argv[])
    values.background = 0;
    newwin->cmgc = XCreateGC(dpy, newwin->clipmask, GCForeground
 		| GCBackground, &values);
-
-   /* set the area widget width and height, center userspace (0,0) on screen */
-
-   XtSetArg(wargs[0], XtNwidth, &newwin->width);
-   XtSetArg(wargs[1], XtNheight, &newwin->height);
-   XtGetValues(newwin->area, wargs, 2);
 
    return newwin;
 }
@@ -2079,6 +2078,7 @@ int main(int argc, char **argv)
       findcrashfiles();
    }
 
+   xobjs.suspend = -1;
    return local_xloop();   /* No return---exit through quit() callback */
 }
 
