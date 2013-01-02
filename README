@@ -2,8 +2,8 @@ XCircuit v3.8
 -----------------------------------------------------------------------------
 
 An X11 drawing program [especially for circuit schematics]
-(c) 2011 Tim Edwards  (see copyright notice in ./COPYRIGHT)
-August 1993 -- April 2011
+(c) 2013 Tim Edwards  (see copyright notice in ./COPYRIGHT)
+August 1993 -- January 2013
 -----------------------------------------------------------------------------
 
 Compilation/Installation notes:
@@ -130,6 +130,7 @@ Compilation/Installation notes:
 	./configure
 	make
 	setenv XCIRCUIT_LIB_DIR ./lib
+	setenv XCIRCUIT_SRC_DIR ./lib/tcl
 	lib/tcl/xcircuit.sh
 
    after which, if all goes well, you can do "make install".
@@ -137,7 +138,10 @@ Compilation/Installation notes:
 3) NOTE:  To test xcircuit before installation, set environment variable
 
 	setenv XCIRCUIT_LIB_DIR ./lib		(csh, tcsh)
+	setenv XCIRCUIT_SRC_DIR ./lib/tcl
+
 	export XCIRCUIT_LIB_DIR=./lib		(bash)
+	export XCIRCUIT_SRC_DIR=./lib/tcl
 
    before running the xcircuit executable.
 
@@ -239,6 +243,12 @@ into a label in XCircuit positioned at the cursor position.
 -----------------------------------------------------------------------------
 
 X Resources:
+
+   The Tcl/Tk version of XCircuit does not use the X resources but
+picks up resources from the file "resource.tcl" in the run-time
+library path (e.g., /usr/local/lib/xcircuit-3.8/resource.tcl).  The
+resource names are the same as those described below but are specified
+using the Tk "option add" command.
 
    The color scheme of xcircuit has a default setup, but accepts 
 alternate color schemes using the following keywords which can be put
