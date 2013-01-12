@@ -1113,9 +1113,9 @@ void undo_finish_series()
 
 void undo_action()
 {
-   short idx = undo_one_action(False);
+   short idx = undo_one_action();
    while (xobjs.undostack && xobjs.undostack->idx == idx)
-      undo_one_action(False);
+      undo_one_action();
 }
 
 /*----------------------------------------------------------------------*/

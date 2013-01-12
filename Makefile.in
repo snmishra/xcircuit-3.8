@@ -751,6 +751,8 @@ xcircuit.c: menudep.h
 parameter.c: menudep.h
 python.c: menudep.h
 tclxcircuit.c: menudep.h
+xtgui.c: menudep.h
+xtfuncs.c: menudep.h
 
 lib/$(INTERP_PATH)/$(WRAPPER_SH): lib/$(INTERP_PATH)/$(WRAPPER_SH).in
 	sed -e '/XCLIBDIR/s#XCLIBDIR#$(librarydir)#' \

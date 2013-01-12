@@ -66,8 +66,8 @@
 /* Global Variable definitions						*/
 /*----------------------------------------------------------------------*/
 
-short	 popups;      /* total number of popup widgets on the screen */
-int	 pressmode;   /* Whether we are in a press & hold state */
+extern short popups;	/* total number of popup widgets on the screen */
+extern int pressmode;	/* Whether we are in a press & hold state */
 
 xcWidget   top;
 xcWidget   message1, message2, message3, toolbar, overlay = NULL;
