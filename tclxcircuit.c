@@ -2058,7 +2058,7 @@ int xctcl_netlist(ClientData clientData, Tcl_Interp *interp,
 		     if (lnets->subnets == 0)
 			netid = lnets->net.id;
 		     else
-			netid = (plist->net.list)->netid;
+			netid = (lnets->net.list)->netid;
 
 		     netpos = NetToPosition(lnets->net.id, topobject);
 		     rdict = Tcl_NewListObj(0, NULL);
