@@ -98,6 +98,8 @@ xcircuit.c: menudep.h
 parameter.c: menudep.h
 python.c: menudep.h
 tclxcircuit.c: menudep.h
+xtgui.c: menudep.h
+xtfuncs.c: menudep.h
 
 # Man page
 M4_DEFS = @M4_DEFS@ @DEFS@

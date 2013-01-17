@@ -62,9 +62,7 @@ extern Tcl_Interp *xcinterp;
 /* Local Variable definitions						*/
 /*----------------------------------------------------------------------*/
 
-#ifdef TCL_WRAPPER
-u_short *fontnumbers;	/* defined in xtfuncs.c in the non-Tcl version */
-#endif
+u_short *fontnumbers;
 u_char nfontnumbers;
 
 /*----------------------------------------------*/

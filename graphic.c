@@ -165,7 +165,14 @@ Boolean transform_graphic(graphicptr gp)
     if (yc + (theight >> 1) < 0) return FALSE;
 
     /* Generate the new target image */
-    if (gp->target != NULL) XDestroyImage(gp->target);
+    if (gp->target != NULL) {
+       if (gp->target->data != NULL) {
+	  /* Free data first, because we used our own malloc() */
+	  free(gp->target->data);
+	  gp->target->data = NULL;
+       }
+       XDestroyImage(gp->target);
+    }
     if (gp->clipmask != (Pixmap)NULL) XFreePixmap(dpy, gp->clipmask);
 
     gp->target = XCreateImage(dpy, DefaultVisual(dpy, screen),
@@ -533,6 +540,11 @@ void freeimage(XImage *source)
       if (iptr->image == source) {
 	 iptr->refcount--;
 	 if (iptr->refcount <= 0) {
+            if (iptr->image->data != NULL) {
+	       /* Free data first, because we used our own malloc() */
+	       free(iptr->image->data);
+	       iptr->image->data = NULL;
+            }
 	    XDestroyImage(iptr->image);
 	    free(iptr->filename);
 
@@ -553,7 +565,14 @@ void freeimage(XImage *source)
 
 void freegraphic(graphicptr gp)
 {
-   if (gp->target != NULL) XDestroyImage(gp->target);
+   if (gp->target != NULL) {
+      if (gp->target->data != NULL) {
+	 /* Free data first, because we used our own malloc() */
+	 free(gp->target->data);
+	 gp->target->data = NULL;
+      }
+      XDestroyImage(gp->target);
+   }
    if (gp->clipmask != (Pixmap)NULL) XFreePixmap(dpy, gp->clipmask);
    freeimage(gp->source);
 }

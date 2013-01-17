@@ -114,10 +114,7 @@ xcIntervalId printtime_id;
 short beeper;
 short fontcount;
 fontinfo *fonts;
-
-#ifdef TCL_WRAPPER	/* defined in xtgui.c in non-Tcl version */
 short	 popups;      /* total number of popup widgets on the screen */
-#endif
 
 /*----------------------------------------------------------------------*/
 /* Externally defined variables						*/

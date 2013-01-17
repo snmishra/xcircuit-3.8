@@ -1161,7 +1161,7 @@ genericptr getsubpart(pathptr editpath, int *idx)
 	    }
 	    break;
       }
-      if (idx) *idx++;
+      if (idx) (*idx)++;
    }
    return NULL;
 }

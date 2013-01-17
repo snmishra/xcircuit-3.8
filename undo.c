@@ -747,8 +747,7 @@ short undo_one_action()
 	    break;
 	 }
 	 else {
-	    /* XXX egen is uninitialized! */
-	    delete_one_element(thisrecord->thisinst, egen);
+	    delete_one_element(thisrecord->thisinst, (genericptr)thisinst);
 	 }
 
 	 /* Put back all the parts */
@@ -848,9 +847,10 @@ short undo_one_action()
 	    case OBJINST: {
 	       XPoint tmppt;
 	       objinstptr einst = (objinstptr)(erec->element);
+	       // Swap instance and saved positions.
 	       tmppt = einst->position;
 	       einst->position = erec->save.instpos;
-	       erec->save.instpos = ((objinstptr)egen)->position;
+	       erec->save.instpos = tmppt;
 	       drawarea(areawin->area, NULL, NULL);
 	    }  break;
 	    case POLYGON: {
@@ -1113,9 +1113,9 @@ void undo_finish_series()
 
 void undo_action()
 {
-   short idx = undo_one_action(False);
+   short idx = undo_one_action();
    while (xobjs.undostack && xobjs.undostack->idx == idx)
-      undo_one_action(False);
+      undo_one_action();
 }
 
 /*----------------------------------------------------------------------*/
@@ -1268,9 +1268,10 @@ short redo_one_action()
 	    case OBJINST: {
 	       XPoint tmppt;
 	       objinstptr einst = (objinstptr)(erec->element);
+	       // Swap instance position and saved position
 	       tmppt = einst->position;
 	       einst->position = erec->save.instpos;
-	       erec->save.instpos = ((objinstptr)egen)->position;
+	       erec->save.instpos = tmppt;
 	       drawarea(areawin->area, NULL, NULL);
 	    }  break;
 	    case ARC: {
