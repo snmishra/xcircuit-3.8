@@ -1241,7 +1241,7 @@ void arcbutton(int x, int y)
    arcdefaults(*newarc, userpt.x, userpt.y);
    addcycle((genericptr *)newarc, 0, 0);
 
-   XcSetXORFg(areawin->color, BACKGROUND);
+   XcSetXORFg((*newarc)->color, BACKGROUND);
    XcSetFunction(GXxor);
    UDrawArc(*newarc, xobjs.pagelist[areawin->page]->wirewidth);
 
@@ -1310,6 +1310,7 @@ void trackarc(xcWidget w, caddr_t clientdata, caddr_t calldata)
 
    calcarc(newarc);
 
+   XcSetXORFg(newarc->color, BACKGROUND);
    UDrawArc(newarc, xobjs.pagelist[areawin->page]->wirewidth);
    UDrawXLine(newpos, newarc->position);
    printpos(newpos.x, newpos.y);
@@ -1364,7 +1365,7 @@ void boxbutton(int x, int y)
    snap(x, y, &userpt);
    polydefaults(*newbox, 4, userpt.x, userpt.y);
 
-   XcSetXORFg(areawin->color, BACKGROUND);
+   XcSetXORFg((*newbox)->color, BACKGROUND);
    XcSetFunction(GXxor);
    UDrawPolygon(*newbox, xobjs.pagelist[areawin->page]->wirewidth);
 
@@ -1396,6 +1397,7 @@ void trackbox(xcWidget w, caddr_t clientdata, caddr_t calldata)
    pointptr++; pointptr->y = newpos.y; pointptr->x = newpos.x;
    pointptr++; pointptr->x = newpos.x;
    
+   XcSetXORFg(newbox->color, BACKGROUND);
    UDrawPolygon(newbox, xobjs.pagelist[areawin->page]->wirewidth);
    printpos(newpos.x, newpos.y);
 
@@ -1439,6 +1441,7 @@ void trackwire(xcWidget w, caddr_t clientdata, caddr_t calldata)
 	 manhattanize(&newpos, newwire, -1, TRUE);
       tpoint->x = newpos.x;
       tpoint->y = newpos.y;
+      XcSetXORFg(newwire->color, BACKGROUND);
       UDrawPolygon(newwire, xobjs.pagelist[areawin->page]->wirewidth);
       areawin->save.x = newpos.x;
       areawin->save.y = newpos.y;
@@ -1476,7 +1479,7 @@ void startwire(XPoint *userpt)
    pointptr->x = (pointptr + 1)->x = areawin->save.x = userpt->x;
    pointptr->y = (pointptr + 1)->y = areawin->save.y = userpt->y;
 
-   XcSetXORFg(areawin->color, BACKGROUND);
+   XcSetXORFg((*newwire)->color, BACKGROUND);
    XcSetFunction(GXxor);
    UDrawPolygon(*newwire, xobjs.pagelist[areawin->page]->wirewidth);
 
@@ -1660,6 +1663,7 @@ void trackelement(xcWidget w, caddr_t clientdata, caddr_t calldata)
    {
       easydraw(*selobj, DOFORALL);
       editpoints(SELTOGENERICPTR(selobj), deltax, deltay);
+      XcSetXORFg(topobject->plist[*selobj]->color, BACKGROUND);
       easydraw(*selobj, DOFORALL);
    }
 
