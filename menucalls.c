@@ -626,6 +626,14 @@ void setcolorscheme(Boolean boolvalue)
    RATSNESTCOLOR = appdata.ratsnestcolor;
    BBOXCOLOR = appdata.bboxpix;
    CLIPMASKCOLOR = appdata.clipcolor;
+
+#if !defined(TCL_WRAPPER) && !defined(DOUBLEBUFFER)
+   {
+      Arg wargs[1];
+      XtSetArg(wargs[0], XtNbackground, BACKGROUND);
+      XtSetValues(areawin->area, wargs, 1);
+   }
+#endif
 }
 
 /*----------------------------------------------------------------*/

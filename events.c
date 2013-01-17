@@ -6405,12 +6405,12 @@ void resizearea(xcWidget w, caddr_t clientdata, caddr_t calldata)
 
       if (areawin->width != savewidth || areawin->height != saveheight) {
 
-#ifdef DOUBLEBUFFER
 	 int maxwidth = 0, maxheight = 0;
          for (thiswin = xobjs.windowlist; thiswin != NULL; thiswin = thiswin->next) {
             if (thiswin->width > maxwidth) maxwidth = thiswin->width;
             if (thiswin->height > maxheight) maxheight = thiswin->height;
          }
+#ifdef DOUBLEBUFFER
          if (dbuf != (Pixmap)NULL) XFreePixmap(dpy, dbuf);
          dbuf = XCreatePixmap(dpy, areawin->window, maxwidth, maxheight,
 		DefaultDepthOfScreen(xcScreen(w)));
@@ -6511,7 +6511,7 @@ void drawwindow(xcWidget w, caddr_t clientdata, caddr_t calldata)
    if (xobjs.pagelist[areawin->page]->background.name != (char *)NULL)
       copybackground();
    else
-      XClearWindow(dpy, win);
+      XClearWindow(dpy, areawin->window);
 #endif
 
 #endif /* OPENGL */

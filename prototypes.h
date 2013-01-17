@@ -110,6 +110,7 @@ extern genericptr getsubpart(pathptr, int *);
 
 /* interactive manipulation of elements */
 extern void splinebutton(int, int);
+extern void updatepath(pathptr);
 extern void trackelement(xcWidget, caddr_t, caddr_t);
 extern void arcbutton(int, int);
 extern void trackarc(xcWidget, caddr_t, caddr_t);
@@ -205,6 +206,7 @@ extern Boolean checkname(objectptr);
 extern char *checkvalidname(char *, objectptr);
 extern objectptr finddot(void);
 extern void movepoints(genericptr *, short, short);
+extern void editpoints(genericptr *, short, short);
 #ifndef TCL_WRAPPER
 extern void xlib_makeobject(xcWidget, caddr_t);
 #endif
@@ -809,6 +811,7 @@ extern short readcommand(short, FILE *);
 
 /* from graphic.c */
 
+extern void count_graphics(objectptr, short *);
 extern void UDrawGraphic(graphicptr);
 extern Imagedata *addnewimage(char *, int, int);
 extern graphicptr new_graphic(objinstptr, char *, int, int);
@@ -910,6 +913,7 @@ extern short *recurse_select_element(short, u_char);
 extern void startselect(void);
 extern void trackselarea(void);
 extern void trackrescale(void);
+extern Boolean compareselection(selection *, selection *);
 extern pointselect *addcycle(genericptr *, short, u_char);
 extern void addanticycle(pathptr, splineptr, short);
 extern void copycycles(pointselect **, pointselect **);

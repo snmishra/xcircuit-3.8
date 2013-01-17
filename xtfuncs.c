@@ -1586,8 +1586,6 @@ void setcolor(xcWidget w, pointertype value, caddr_t calldata)
          areawin->color = cval;      
       overdrawpixmap(w);
    }
-
-   unselect_all();
 }
 
 /*----------------------------------------------------------------*/
