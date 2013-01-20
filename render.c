@@ -13,8 +13,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <termios.h>
 #ifndef XC_WIN32
+#include <termios.h>
 #include <unistd.h>
 #endif
 #include <time.h>
@@ -151,6 +151,13 @@ Boolean render_client(XEvent *eventPtr)
       gs_state = GS_INIT;
    } 
    else {
+      char *atomname;
+
+      atomname = XGetAtomName(dpy, eventPtr->xclient.message_type);
+      if (atomname != NULL) {
+	 fprintf(stderr, "Received client message using atom \"%s\"\n", atomname);
+	 XFree(atomname);
+      }
       return False;
    }
    return True;
@@ -241,6 +248,10 @@ void ask_for_next()
 void start_gs()
 {
    int std_out[2], std_err[2], ret;
+#ifdef XC_WIN32
+   unsigned int pipe_size = 8196;
+   int pipe_mode = _O_BINARY;
+#endif
 #ifdef HAVE_PUTENV
    static char env_str1[128], env_str2[64];
 #endif
@@ -270,10 +281,19 @@ void start_gs()
 
    XSync(dpy, False);
 
+#ifndef XC_WIN32
    ret = pipe(fgs);
    ret = pipe(std_out);
+#else
+   ret = _pipe(fgs, pipe_size, pipe_mode);
+   ret = _pipe(std_out, pipe_size, pipe_mode);
+#endif
 #ifndef GS_DEBUG
+#ifndef XC_WIN32
    ret = pipe(std_err);
+#else
+   ret = _pipe(srd_err, pipe_size, pipe_mode);
+#endif  /* XC_WIN32 */
 #endif
 
    /* We need a complicated pipe here, with input going from xcircuit	*/
@@ -590,8 +610,12 @@ void loadbackground()
 
 void send_to_gs(char *text)
 {
+#ifndef XC_WIN32
    write(fgs[1], text, strlen(text));
    tcflush(fgs[1], TCOFLUSH);
+#else
+   _write(fgs[1], text, (unsigned int)strlen(text));
+#endif
 #ifdef GS_DEBUG
    fprintf(stdout, "writing: %s", text);
 #endif

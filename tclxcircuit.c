@@ -3000,6 +3000,9 @@ int xctcl_param(ClientData clientData, Tcl_Interp *interp,
 	    case SetIdx:
 	    case GetIdx:
 	    case TypeIdx:
+	    case MakeIdx:
+	    case DeleteIdx:
+	    case ForgetIdx:
 	    case DefaultIdx:
 	       if (thiselem && IS_OBJINST(thiselem)) {
 		  refinst = (objinstptr)thiselem;
@@ -3370,7 +3373,7 @@ next_param:
 	       stringpart *strptr = NULL, *newpart;
 	       result = GetXCStringFromList(interp, objv[nidx + 3], &strptr);
 	       if (result != TCL_ERROR) {
-	          if (makestringparam(topobject, Tcl_GetString(objv[nidx + 2]),
+	          if (makestringparam(refobj, Tcl_GetString(objv[nidx + 2]),
 				strptr) == -1)
 		     return TCL_ERROR;
 		  /* Add the "parameter end" marker to this string */
@@ -3395,7 +3398,7 @@ next_param:
 		  /* Not fatal to have a bad expression result. . . */
 		  /* return result; */
 	       }
-	       if (makeexprparam(topobject, Tcl_GetString(objv[nidx + 2]),
+	       if (makeexprparam(refobj, Tcl_GetString(objv[nidx + 2]),
 				temps.parameter.expr, P_EXPRESSION) == NULL)
 		  return TCL_ERROR;
 	    }
@@ -3412,7 +3415,7 @@ next_param:
 
 	       result = Tcl_GetDoubleFromObj(interp, objv[nidx + i], &tmpdbl);
 	       if (result != TCL_ERROR) {
-		  if (makefloatparam(topobject, Tcl_GetString(objv[nidx + i - 1]),
+		  if (makefloatparam(refobj, Tcl_GetString(objv[nidx + i - 1]),
 				(float)tmpdbl) == -1)
 		     return TCL_ERROR;
 	       }
@@ -3435,7 +3438,7 @@ next_param:
 		  }
 		  result = Tcl_GetDoubleFromObj(interp, exprres, &tmpdbl);
 		  if (result != TCL_ERROR) {
-		     if ((newkey = makeexprparam(topobject, (value == P_NUMERIC) ?	
+		     if ((newkey = makeexprparam(refobj, (value == P_NUMERIC) ?	
 				Tcl_GetString(objv[nidx + i - 1]) : NULL,
 				temps.parameter.expr, value)) == NULL)
 			return TCL_ERROR;
@@ -3528,13 +3531,13 @@ next_param:
 
 	 if (objc == nidx + 2) {
 	    /* Check against keys */
-	    ops = match_param(topobject, Tcl_GetString(objv[nidx + 1]));
+	    ops = match_param(refobj, Tcl_GetString(objv[nidx + 1]));
 	    if (ops == NULL) {
 	       Tcl_SetResult(interp, "Invalid parameter key", NULL);
 	       return TCL_ERROR;
 	    }
 	    else {
-	       free_object_param(topobject, ops);
+	       free_object_param(refobj, ops);
 	       /* Redraw everything */
 	       drawarea(areawin->area, (caddr_t)NULL, (caddr_t)NULL);
 	    }
@@ -6288,6 +6291,7 @@ int xctcl_config(ClientData clientData, Tcl_Interp *interp,
 	 break;
 
       case DebugIdx:
+#ifdef ASG
 	 if (objc == 3) {
 	    result = Tcl_GetIntFromObj(interp, objv[2], &tmpint);
 	    if (result != TCL_OK) return result;
@@ -6296,7 +6300,9 @@ int xctcl_config(ClientData clientData, Tcl_Interp *interp,
 	 else {
 	    Tcl_SetObjResult(interp, Tcl_NewIntObj(SetDebugLevel(NULL)));
 	 }
+#endif
 	 break;
+
 
       case InitIdx:
 	 /* Create a data structure for a new drawing window. */
@@ -7848,6 +7854,15 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 	    }
 	    usertech = TRUE;
 	 }
+	 /* And if the user technology has been saved to a file, the technology	*/
+	 /* will have a NULL string.  Also check for technology name "(user)",	*/
+	 /* although that is not supposed to happen.				*/
+
+	 else if (*nsptr->technology == '\0')
+	    usertech = TRUE;
+
+	 else if (!strcmp(nsptr->technology, "(user)"))
+	    usertech = TRUE;
       }
       else {
          Tcl_WrongNumArgs(interp, 1, objv, "<option> technology ?args ...?");

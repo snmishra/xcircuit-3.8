@@ -1526,6 +1526,11 @@ void TechReplaceNone()
 
 /*------------------------------------------------------*/
 /* Compare an object's name with a specific technology	*/
+/*							*/
+/* A missing "::" prefix separator or an empty prefix	*/
+/* both match a NULL technology or a technology name	*/
+/* that is an empty string ("").  All of these		*/
+/* conditions indicate the default "user" technology.	*/
 /*------------------------------------------------------*/
 
 Boolean CompareTechnology(objectptr cobj, char *technology)
@@ -1534,7 +1539,8 @@ Boolean CompareTechnology(objectptr cobj, char *technology)
    Boolean result = FALSE;
 
    if ((cptr = strstr(cobj->name, "::")) != NULL) {
-      if (technology == NULL) result = FALSE;
+      if (technology == NULL)
+	 result = (cobj->name == cptr) ? TRUE : FALSE;
       else {
          *cptr = '\0';
          if (!strcmp(cobj->name, technology)) result = TRUE;
@@ -1554,13 +1560,26 @@ Boolean CompareTechnology(objectptr cobj, char *technology)
 TechPtr LookupTechnology(char *technology)
 {
    TechPtr nsp;
+   Boolean usertech = FALSE;
 
-   if (technology == NULL) return NULL;
+   // A NULL technology is allowed as equivalent to a
+   // technology name of "" (null string)
 
-   for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next)
-      if (!strcmp(technology, nsp->technology))
+   if (technology == NULL)
+      usertech = TRUE;
+   else if (*technology == '\0')
+      usertech = TRUE;
+   else if (!strcmp(technology, "(user)"))
+      usertech = TRUE;
+
+   for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next) {
+      if (usertech == TRUE) {
+	 if (*nsp->technology == '\0')
+	    return nsp;
+      }
+      if ((technology != NULL) && !strcmp(technology, nsp->technology))
 	 return nsp;
-
+   }
    return NULL;
 }
 
@@ -1611,11 +1630,22 @@ TechPtr GetObjectTechnology(objectptr thisobj)
 TechPtr AddNewTechnology(char *technology, char *filename)
 {
    TechPtr nsp;
+   char usertech[] = "";
+   char *localtech = technology;
 
-   if (technology == NULL) return NULL;
+   // In the case where somebody has saved the contents of the user
+   // technology to a file, create a technology->filename mapping
+   // using a null string ("") for the technology name.  If we are
+   // only checking if a technology name exists (filename is NULL),
+   // then ignore an reference to the user technology.
+
+   if (technology == NULL) {
+      if (filename == NULL) return NULL;
+      else localtech = usertech;
+   }
 
    for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next) {
-      if (!strcmp(technology, nsp->technology)) {
+      if (!strcmp(localtech, nsp->technology)) {
 
 	 /* A namespace may be created for an object that is a dependency */
 	 /* in a different technology.  If so, it will have a NULL	  */
@@ -1635,7 +1665,7 @@ TechPtr AddNewTechnology(char *technology, char *filename)
       nsp->filename = NULL;
    else
       nsp->filename = strdup(filename);
-   nsp->technology = strdup(technology);
+   nsp->technology = strdup(localtech);
    nsp->flags = (u_char)0;
    xobjs.technologies = nsp;
 
@@ -1717,6 +1747,11 @@ Boolean loadlibrary(short mode)
 
 	       /* Don't write terminating newline to the object's name string */
 	       ridnewline(cptr);
+
+	       /* The default user technology is written to the output	*/
+	       /* as "(user)".  If this is found, replace it with a	*/
+	       /* null string.						*/
+	       if (!strcmp(cptr, "(user)")) cptr += 6;
 
 	       /* Removing any leading pathname from the library name */
 	       if ((nptr = strrchr(cptr, '/')) != NULL) cptr = nptr + 1;
@@ -1871,9 +1906,15 @@ void importspice()
       xc_tilde_expand(_STR, 149);
       sscanf(_STR, "%149s", inname);
       spcfile = fopen(inname, "r");
-      ReadSpice(spcfile);
-      Route(areawin, False);
-      fclose(spcfile);
+      if (spcfile != NULL) {
+         ReadSpice(spcfile);
+         Route(areawin, False);
+         fclose(spcfile);
+      }
+      else {
+         Wprintf("Error:  Spice file not found.");
+	 return;
+      }
    }
    else {
       Wprintf("Error:  No spice file to read.");
@@ -3389,6 +3430,9 @@ char *continueline(char **buffer)
    int bufsize;
 
    for (lineptr = *buffer; (*lineptr != '\n') && (*lineptr != '\0'); lineptr++);
+   /* Repair Windoze-mangled files */
+   if ((lineptr > *buffer) && (*lineptr == '\n') && (*(lineptr - 1) == '\r'))
+      *(lineptr - 1) = ' ';
    if (*lineptr == '\n') *lineptr++ = ' ';
 
    bufsize = (int)(lineptr - (*buffer)) + 256;
@@ -3589,6 +3633,8 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 
       /* because PostScript is a stack language, we will scan from the end */
       for (lineptr = buffer; (*lineptr != '\n') && (*lineptr != '\0'); lineptr++);
+      /* Avoid CR-LF at EOL added by stupid Windoze programs */
+      if ((lineptr > buffer) && *(lineptr - 1) == '\r') lineptr--;
       if (lineptr != buffer) {  /* ignore any blank lines */
          for (keyptr = lineptr - 1; isspace(*keyptr) && keyptr != buffer; keyptr--);
          for (; !isspace(*keyptr) && keyptr != buffer; keyptr--);
@@ -4950,8 +4996,17 @@ void savetechnology(char *technology, char *outname)
    struct passwd *mypwentry = NULL;
    int i, j, ilib;
    TechPtr nsptr;
+   char *loctechnology;
 
-   nsptr = LookupTechnology(technology);
+   // Don't use the string "(user)" as a technology name;  this is just
+   // a GUI placeholder for a null string ("").  This shouldn't happen,
+   // though, as technology should be NULL if the user technology is
+   // selected.
+
+   if (technology && (!strcmp(technology, "(user)")))
+      nsptr = LookupTechnology(NULL);
+   else
+      nsptr = LookupTechnology(technology);
 
    if (nsptr != NULL) {
       if ((nsptr->flags & LIBRARY_READONLY) != 0) {

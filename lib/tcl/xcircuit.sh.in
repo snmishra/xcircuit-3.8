@@ -2,7 +2,7 @@
 #
 # This script starts xcircuit under the Tcl interpreter,
 # reading commands from a special .wishrc script which
-# launches magic and retains the Tcl interactive interpreter.
+# launches xcircuit and retains the Tcl interactive interpreter.
 #
 
 loclibdir=${XCIRCUIT_LIB_DIR:=XCLIBDIR}

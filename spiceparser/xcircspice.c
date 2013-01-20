@@ -119,7 +119,8 @@ do_ckt:
 		ckt->x[j].rest->str, 0);
 
 	 for (i = 0; i < ckt->x[j].nn; i++)
-	     AddModuleTerm(ckt->x[j].rest->str, node(ckt->x[j].nodes[i]), i);
+	     AddModuleTerm(ckt->x[j].rest->str, node(ckt->x[j].nodes[i]), i,
+			ckt->x[j].nn);
       }
 
    }

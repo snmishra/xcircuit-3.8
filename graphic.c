@@ -171,7 +171,7 @@ Boolean transform_graphic(graphicptr gp)
     gp->target = XCreateImage(dpy, DefaultVisual(dpy, screen),
 			DefaultDepth(dpy, screen), ZPixmap,
 			0, 0, twidth, theight, 8, 0);
-    gp->target->data = (char *)calloc(theight, gp->target->bytes_per_line);
+    gp->target->data = (char *)malloc(theight * gp->target->bytes_per_line);
 
     if (gp->target->data == (char *)NULL) {
        XDestroyImage(gp->target);
@@ -293,7 +293,7 @@ Imagedata *addnewimage(char *name, int width, int height)
    iptr->image = XCreateImage(dpy, DefaultVisual(dpy, screen),
 		DefaultDepth(dpy, screen), ZPixmap, 0, NULL,
 		width, height, 8, 0);
-   iptr->image->data = (char *)calloc(height, iptr->image->bytes_per_line);
+   iptr->image->data = (char *)malloc(height * iptr->image->bytes_per_line);
 
    return iptr;
 }

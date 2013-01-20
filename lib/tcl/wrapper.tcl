@@ -732,7 +732,7 @@ xcircuit::tag config {if {%# == 3} {
 	   editinplace {set XCWinOps($XCOps(focus),editinplace) [config editinplace]}
 	   pinpositions {set XCWinOps($XCOps(focus),pinpositions) [config pinpositions]}
 	   pinattach {set XCWinOps($XCOps(focus),pinattach) [config pinattach]}
-	   namespaces {set XCWinOps($XCOps(focus),namespaces) [config namespaces]}
+	   technologies {set XCWinOps($XCOps(focus),namespaces) [config technologies]}
 	   hold {set XCOps(hold) [config hold]}
 	   grid {catch {set XCWinOps($XCOps(focus),showgrid) [config grid]}}
 	   snap {catch {set XCWinOps($XCOps(focus),showsnap) [config snap]}}
@@ -1234,26 +1234,33 @@ proc xcircuit::printjust {justif} {
    return $p
 }
 
+proc xcircuit::labelmakeparam {} {
+   global XCOps
+   if {[xcircuit::select] > 0} {	;# this should be true. . .
+      set XCOps(dialog) paramname
+      xcircuit::removedialogline textent2	;# default is the selected text
+      .dialog.bbar.apply configure -command \
+	 [subst {xcircuit::parameter make substring \[.dialog.textent.txt get\];\
+	 xcircuit::updateparams substring}]
+      .dialog.textent.title.field configure -text "Parameter name:"
+   }
+   .dialog.textent.txt delete 0 end
+   xcircuit::popupdialog
+}
+
 proc xcircuit::promptmakeparam {{mode substring}} {
    global XCOps
-   if {[xcircuit::select] > 0} {
-      set XCOps(dialog) paramname
-      xcircuit::removedialogline textent2
-      .dialog.bbar.apply configure -command \
-	 [subst {xcircuit::parameter make $mode \[.dialog.textent.txt get\];\
-	 xcircuit::updateparams $mode}]
-      .dialog.textent.title.field configure -text "Parameter name:"
-   } else {
-      set XCOps(dialog) paramdefault
-      xcircuit::makedialogline textent2 "Default value:"
-      .dialog.bbar.apply configure -command \
+
+   set XCOps(dialog) paramdefault
+   if {$mode == "label"} {set mode substring}
+   xcircuit::makedialogline textent2 "Default value:"
+   .dialog.bbar.apply configure -command \
 	 [subst {xcircuit::parameter make $mode \
-	 \[.dialog.textent.txt get\] \[.dialog.textent2.txt get\]; \
+	 \[.dialog.textent.txt get\] \[.dialog.textent2.txt get\] -forward; \
 	 xcircuit::removedialogline textent2; \
 	 xcircuit::updateparams $mode}]
-      .dialog.textent.title.field configure -text \
+   .dialog.textent.title.field configure -text \
 		"Parameter name:"
-   }
    .dialog.textent.txt delete 0 end
    xcircuit::popupdialog
 }
@@ -1384,7 +1391,7 @@ proc xcircuit::updateparams { {mode {substring numeric expression}} } {
       set p_name [lindex $i 0]
       set p_val [lindex $i 1]
       .parameter.delete.deleteparam add command -label $p_name -command \
-	 "xcircuit::parameter delete $p_name"
+	 "xcircuit::parameter delete $p_name -forward"
       .parameter.keylist insert end $p_name
       switch -- [xcircuit::parameter type $p_name -forward] {
 	 "substring" {
@@ -1423,6 +1430,7 @@ proc xcircuit::promptmakesymbol {{name ""}} {
 	  {if {[string first "Page " [page label]] >= 0} { \
 	  page label [.dialog.textent.txt get]}; \
 	  xcircuit::symbol make [.dialog.textent.txt get] $XCOps(library)}
+  xcircuit::removedialogline textent2
   .dialog.textent.title.field configure -text "Name for new object:"
   .dialog.textent.txt delete 0 end
   .dialog.textent.txt insert 0 $name
@@ -2421,7 +2429,7 @@ proc xcircuit::makemenus {window} {
    $m add cascade -label "Insert" -menu $m.insertmenu
    $m add cascade -label "Justification" -menu $m.justifymenu
    $m add command -label "Parameterize" \
-	-command {xcircuit::promptmakeparam}
+	-command {xcircuit::labelmakeparam}
    $m add command -label "Unparameterize" \
 	-command {xcircuit::parameter replace substring}
    $m add separator
@@ -2484,7 +2492,7 @@ proc xcircuit::makemenus {window} {
    $m2 add command -label "1/4 space" -command "xcircuit::label insert quarterspace"
    $m2 add command -label "Kern" -command "xcircuit::promptkern"
    $m2 add command -label "Character" -command "xcircuit::label insert special"
-   $m2 add command -label "Parameter" -command "xcircuit::label insert parameter"
+   $m2 add command -label "Parameter" -command "xcircuit::prompteditparams"
 
    set m2 [menu $m.justifymenu -tearoff 0]
    $m2 add radio -label "Left Justified" -variable XCWinOps(${window},jhoriz) \
@@ -2531,7 +2539,7 @@ proc xcircuit::makemenus {window} {
    $m add check -label "Show Library Namespaces" \
 	-variable XCWinOps(${window},namespaces) \
 	-onvalue true -offvalue false -command \
-	{xcircuit::config namespaces $XCWinOps($XCOps(focus),namespaces)}
+	{xcircuit::config technologies $XCWinOps($XCOps(focus),namespaces)}
 
    $m add command -label "Disable Toolbar" -command {xcircuit::toolbar disable}
    $m add check -label "Allow HOLD Mode" -variable XCOps(hold) -onvalue true \

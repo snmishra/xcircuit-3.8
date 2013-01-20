@@ -8,10 +8,11 @@
 /*----------------------------------------------------------------------*/
 
 #ifndef HAVE_U_CHAR
-typedef unsigned char	u_char;
-typedef unsigned short	u_short;
-typedef unsigned int	u_int;
-typedef unsigned long	u_long;
+typedef unsigned char		u_char;
+typedef unsigned short		u_short;
+typedef unsigned int		u_int;
+typedef unsigned long		u_long;
+typedef unsigned long long	u_long;
 #endif
 
 #ifdef XC_WIN32
@@ -79,12 +80,28 @@ typedef unsigned long	u_long;
 /* Deal with 32/64 bit processors based on autoconf results.		*/
 /*----------------------------------------------------------------------*/
 
+#ifndef SIZEOF_VOID_P
+#error "SIZEOF_VOID_P undefined!"
+#endif
+#ifndef SIZEOF_UNSIGNED_INT
+#error "SIZEOF_UNSIGNED_INT undefined!"
+#endif
+#ifndef SIZEOF_UNSIGNED_LONG
+#error "SIZEOF_UNSIGNED_LONG undefined!"
+#endif
+#ifndef SIZEOF_UNSIGNED_LONG_LONG
+#error "SIZEOF_UNSIGNED_LONG_LONG undefined!"
+#endif
+
 #if SIZEOF_VOID_P == SIZEOF_UNSIGNED_INT
 #define Number(a)		(void *)((u_int) a)
 typedef u_int pointertype;
 #elif SIZEOF_VOID_P == SIZEOF_UNSIGNED_LONG
 #define Number(a)		(void *)((u_long) a)
 typedef u_long pointertype;
+#elif SIZEOF_VOID_P == SIZEOF_UNSIGNED_LONG_LONG
+#define Number(a)		(void *)((u_long_long) a)
+typedef u_long_long pointertype;
 #else
 ERROR: Cannot compile without knowing the size of a pointer.  See xcircuit.h.
 #endif

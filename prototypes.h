@@ -701,6 +701,8 @@ extern void resolve_devnames(objectptr);
 extern void resolve_indices(objectptr, Boolean);
 extern void clear_indices(objectptr);
 extern void unnumber(objectptr);
+extern char *parsepininfo(objinstptr, char *, int);
+extern char *defaultpininfo(objinstptr, int);
 extern char *parseinfo(objectptr, objectptr, CalllistPtr, char *, char *, Boolean,
 		Boolean);
 extern int writedevice(FILE *, char *, objectptr, CalllistPtr, char *);
