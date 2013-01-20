@@ -211,9 +211,13 @@ int changepage(short pagenumber)
       xobjs.pagelist[pagenumber] = (Pagedata *)malloc(sizeof(Pagedata));
       xobjs.pagelist[pagenumber]->filename = NULL;
       xobjs.pagelist[pagenumber]->background.name = NULL;
+      xobjs.pagelist[pagenumber]->pageinst = NULL;
 
-      for (npage = xobjs.pages; npage <= pagenumber; npage++)
-	 xobjs.pagelist[npage]->pageinst = NULL;
+      // If we skipped ahead to pagenumber, fill in the pages in between
+      for (npage = xobjs.pages; npage < pagenumber; npage++) {
+         xobjs.pagelist[npage] = (Pagedata *)malloc(sizeof(Pagedata));
+         xobjs.pagelist[npage]->pageinst = NULL;
+      }
 
       xobjs.pages = pagenumber + 1;
       makepagebutton();
@@ -1157,7 +1161,7 @@ genericptr getsubpart(pathptr editpath, int *idx)
 	    }
 	    break;
       }
-      if (idx) *idx++;
+      if (idx) (*idx)++;
    }
    return NULL;
 }
@@ -4538,7 +4542,7 @@ char *checkvalidname(char *teststring, objectptr newobj)
 		  /* leading underscore.				*/
 
 		  if (strstr(pptr, "::") == NULL) {
-                     pptr = (char *)malloc(strlen((*libobj)->name) + 2);
+                     pptr = (char *)malloc(strlen((*libobj)->name) + 8);
 		     sprintf(pptr, "unref::%s", (*libobj)->name);
 		  }
 		  else {
@@ -6401,12 +6405,12 @@ void resizearea(xcWidget w, caddr_t clientdata, caddr_t calldata)
 
       if (areawin->width != savewidth || areawin->height != saveheight) {
 
-#ifdef DOUBLEBUFFER
 	 int maxwidth = 0, maxheight = 0;
          for (thiswin = xobjs.windowlist; thiswin != NULL; thiswin = thiswin->next) {
             if (thiswin->width > maxwidth) maxwidth = thiswin->width;
             if (thiswin->height > maxheight) maxheight = thiswin->height;
          }
+#ifdef DOUBLEBUFFER
          if (dbuf != (Pixmap)NULL) XFreePixmap(dpy, dbuf);
          dbuf = XCreatePixmap(dpy, areawin->window, maxwidth, maxheight,
 		DefaultDepthOfScreen(xcScreen(w)));
@@ -6507,7 +6511,7 @@ void drawwindow(xcWidget w, caddr_t clientdata, caddr_t calldata)
    if (xobjs.pagelist[areawin->page]->background.name != (char *)NULL)
       copybackground();
    else
-      XClearWindow(dpy, win);
+      XClearWindow(dpy, areawin->window);
 #endif
 
 #endif /* OPENGL */

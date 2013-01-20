@@ -559,7 +559,6 @@ short closedistance(polyptr curpoly, XPoint *cursloc)
 
 short checkbounds()
 {
-   XPoint testpt;
    long lval;
 
    /* check window-to-user space */
@@ -579,7 +578,6 @@ short checkbounds()
    lval = (long)areawin->height - (long)((float)(topobject->bbox.lowerleft.y -
 	areawin->pcorner.y) * areawin->vscale); 
    if (lval != (long)((short)lval)) return -1;
-   UTransformbyCTM(DCTM, &(topobject->bbox.lowerleft), &testpt, 1);
 
    lval = (long)((float)(topobject->bbox.lowerleft.x + topobject->bbox.width -
 	areawin->pcorner.x) * areawin->vscale);
@@ -2275,13 +2273,9 @@ void UDrawBBox()
 
 void strokepath(XPoint *pathlist, short number, short style, float width)
 {
-   char         solidpart;
-   char         dashstring[3];
    float        tmpwidth;
-   short	minwidth;
 
    tmpwidth = UTopTransScale(width);
-   minwidth = max(1, (short)tmpwidth);
 
    if (!(style & CLIPMASK) || (areawin->showclipmasks == TRUE) ||
 		(areawin->clipped < 0)) {
@@ -2305,11 +2299,19 @@ void strokepath(XPoint *pathlist, short number, short style, float width)
          SetFillStyle(dpy, areawin->gc, FillSolid);
       }
       if (!(style & NOBORDER)) {
-         /* set up dots or dashes */
-         if (style & DASHED) solidpart = (char)(4 * minwidth);
-         else if (style & DOTTED) solidpart = (char)minwidth;
-         sprintf(dashstring, "%c%c", solidpart, (char)(4 * minwidth));
          if (style & (DASHED | DOTTED)) {
+	    /* Set up dots or dashes */
+	    char dashstring[2];
+	    /* prevent values greater than 255 from folding back into	*/
+	    /* type char.  Limit to 63 (=255/4) to keep at least the	*/
+	    /* dot/gap ratio to scale when 'gap' is at its maximum	*/
+	    /* value.							*/
+	    unsigned char dotsize = min(63, max(1, (short)tmpwidth));
+	    if (style & DASHED)
+	       dashstring[0] = 4 * dotsize;
+	    else if (style & DOTTED)
+	       dashstring[0] = dotsize;
+	    dashstring[1] = 4 * dotsize;
             SetDashes(dpy, areawin->gc, 0, dashstring, 2);
             SetLineAttributes(dpy, areawin->gc, tmpwidth, LineOnOffDash,
 		CapButt, (style & SQUARECAP) ? JoinMiter : JoinBevel);
@@ -2418,7 +2420,7 @@ void UDrawArc(arcptr thearc, float passwidth)
    UfTransformbyCTM(DCTM, thearc->points, tmppoints, thearc->number);
    strokepath(tmppoints, thearc->number, thearc->style, scaledwidth);
    if (thearc->cycle != NULL) {
-      UDrawXLine(thearc->position, thearc->position);
+      UDrawXLine(thearc->position, areawin->save);
    }
 }
 

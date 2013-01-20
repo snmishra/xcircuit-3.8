@@ -2058,7 +2058,7 @@ int xctcl_netlist(ClientData clientData, Tcl_Interp *interp,
 		     if (lnets->subnets == 0)
 			netid = lnets->net.id;
 		     else
-			netid = (plist->net.list)->netid;
+			netid = (lnets->net.list)->netid;
 
 		     netpos = NetToPosition(lnets->net.id, topobject);
 		     rdict = Tcl_NewListObj(0, NULL);
@@ -7008,7 +7008,7 @@ int xctcl_page(ClientData clientData, Tcl_Interp *interp,
 {
    int result, idx, nidx, aval, i, locidx;
    int cpage, multi, savepage, pageno = -1, linktype, importtype;
-   char *filename, *froot;
+   char *filename, *froot, *astr;
    Tcl_Obj *objPtr;
    double newheight, newwidth, newscale;
    float oldscale;
@@ -7698,13 +7698,16 @@ int xctcl_page(ClientData clientData, Tcl_Interp *interp,
 	    froot = strrchr(newstr, '/');
 	    if (froot == NULL) froot = newstr;
 	    if (strchr(froot, '.') == NULL) {
-	       Tcl_AppendToObj(objv[2 + nidx], ".ps", 3);
-	       newstr = Tcl_GetString(objv[2 + nidx]);
+	       astr = malloc(strlen(newstr) + 4);
+	       sprintf(astr, "%s.ps", newstr);
+	       newstr = astr;
 	    }
 	 }
 
-	 if (oldstr && (!strcmp(oldstr, newstr)))	/* no change in string */
+	 if (oldstr && (!strcmp(oldstr, newstr))) {	/* no change in string */
+	    if (newstr == astr) free(astr);
 	    return XcTagCallback(interp, objc, objv);
+	 }
 
 	 if (strlen(newstr) == 0) {		/* empty string */
 	    Tcl_SetResult(interp, "Warning:  No filename!", NULL);
@@ -7716,6 +7719,7 @@ int xctcl_page(ClientData clientData, Tcl_Interp *interp,
 
 	 /* Make the change to the current page */
 	 curpage->filename = strdup(newstr);
+	 if (newstr == astr) free(astr);
 
 	 /* All existing filenames which match the old string should	*/
 	 /* also be changed unless the filename has been set to the	*/

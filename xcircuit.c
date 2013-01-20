@@ -98,7 +98,6 @@
 
 char	 _STR2[250];  /* Specifically for text returned from the popup prompt */
 char	 _STR[150];   /* Generic multipurpose string */
-short	 popups;      /* total number of popup widgets on the screen */
 int	 pressmode;   /* Whether we are in a press & hold state */
 Display  *dpy = NULL;        /* Works well to make this globally accessible */
 Colormap cmap;
@@ -115,6 +114,7 @@ xcIntervalId printtime_id;
 short beeper;
 short fontcount;
 fontinfo *fonts;
+short	 popups;      /* total number of popup widgets on the screen */
 
 /*----------------------------------------------------------------------*/
 /* Externally defined variables						*/

@@ -321,7 +321,7 @@ stringpart *deletestring0(stringpart *dstr, stringpart **strtop, objinstptr this
 
 stringpart *deletestring(stringpart *dstr, stringpart **strtop, objinstptr thisinst)
 {
-   deletestring0(dstr, strtop, thisinst, TRUE);
+   return deletestring0(dstr, strtop, thisinst, TRUE);
 }
 
 /*----------------------------------------------------------------------*/

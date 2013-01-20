@@ -66,11 +66,11 @@ extern short	 popups;	     /* total number of popup windows */
 #include "menudep.h"
 
 /*----------------------------------------------------------------------*/
-/* Local Variable definitions						*/
+/* External variable definitions					*/
 /*----------------------------------------------------------------------*/
 
-u_short *fontnumbers;
-u_char nfontnumbers;
+extern u_short *fontnumbers;
+extern u_char nfontnumbers;
 
 /*----------------------------------------------*/
 /* Set Poly and Arc line styles and fill styles */
@@ -1586,8 +1586,6 @@ void setcolor(xcWidget w, pointertype value, caddr_t calldata)
          areawin->color = cval;      
       overdrawpixmap(w);
    }
-
-   unselect_all();
 }
 
 /*----------------------------------------------------------------*/
