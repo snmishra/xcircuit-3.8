@@ -1373,11 +1373,13 @@ void startselect()
    UDrawBox(areawin->origin, areawin->save);
 
 #ifdef TCL_WRAPPER
-   Tk_CreateEventHandler(areawin->area, ButtonMotionMask,
-		(Tk_EventProc *)xctk_drag, NULL);
+   Tk_CreateEventHandler(areawin->area, ButtonMotionMask |
+		PointerMotionMask, (Tk_EventProc *)xctk_drag,
+		NULL);
 #else
-   xcAddEventHandler(areawin->area, ButtonMotionMask, False,
-		(xcEventHandler)xlib_drag, NULL);
+   xcAddEventHandler(areawin->area, ButtonMotionMask |
+		PointerMotionMask, False, (xcEventHandler)xlib_drag,
+		NULL);
 #endif
 
 }

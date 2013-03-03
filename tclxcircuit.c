@@ -5471,13 +5471,17 @@ int xctcl_arc(ClientData clientData, Tcl_Interp *interp,
 int xctcl_path(ClientData clientData, Tcl_Interp *interp,
 	int objc, Tcl_Obj *CONST objv[])
 {
-  int idx, nidx, result;
-   genericptr newgen;
-   Tcl_Obj *objPtr, **newobjv;
+   int idx, nidx, result, j, i;
+   genericptr newgen, *eptr;
+   pathptr ppath;
+   Tcl_Obj *elist, *objPtr, *cpair, *coord, **newobjv;
+   XPoint ppt;
+   Matrix hierCTM;
 
-   static char *subCmds[] = {"join", "make", "border", "fill", "point", "unjoin", NULL};
+   static char *subCmds[] = {"join", "make", "border", "fill", "point", "unjoin",
+		"points", NULL};
    enum SubIdx {
-	JoinIdx, MakeIdx, BorderIdx, FillIdx, PointIdx, UnJoinIdx
+	JoinIdx, MakeIdx, BorderIdx, FillIdx, PointIdx, UnJoinIdx, PointsIdx
    };
 
    nidx = 5;
@@ -5520,13 +5524,76 @@ int xctcl_path(ClientData clientData, Tcl_Interp *interp,
 	 break;
 
       case PointIdx:
-	 Tcl_SetResult(interp, "Unimpemented function.", NULL);
+	 Tcl_SetResult(interp, "Unimplemented function.", NULL);
 	 return TCL_ERROR;
 	 break;
 
       case UnJoinIdx:
 	 unjoin();
 	 /* Would be nice to return the list of constituent elements. . . */
+	 break;
+
+      case PointsIdx:
+	 /* Make a list of the polygon and spline elements in the path, */
+	 /* returning a nested list enumerating the points.  This is	*/
+	 /* ad-hoc, as it does not match any other method of returning	*/
+	 /* point information about a part.  This is because returning	*/
+	 /* a handle list is useless, since the handles cannot be	*/
+	 /* accessed directly.						*/
+
+	 if (areawin->selects != 1) {
+	    Tcl_SetResult(interp, "Must have exactly one selection to "
+		"query parts", NULL);
+	    return TCL_ERROR;
+	 }
+	 else {
+	    if (SELECTTYPE(areawin->selectlist) != PATH) {
+		Tcl_SetResult(interp, "Selected element is not a path", NULL);
+		return TCL_ERROR;
+	    }
+	    else
+	       ppath = SELTOPATH(areawin->selectlist);
+
+	    MakeHierCTM(&hierCTM);
+
+	    objPtr = Tcl_NewListObj(0, NULL);
+	    for (j = 0; j < ppath->parts; j++) {
+	       eptr = (genericptr *)(ppath->plist + j);
+	       elist = Tcl_NewListObj(0, NULL);
+	       if ((*eptr)->type == POLYGON) {
+		  polyptr ppoly;
+		  ppoly = (polyptr)(*eptr);
+	          Tcl_ListObjAppendElement(interp, elist,
+				Tcl_NewStringObj("polygon", -1));
+		  for (i = 0; i < ppoly->number; i++) {
+		     cpair = Tcl_NewListObj(0, NULL);
+		     UTransformbyCTM(&hierCTM, ppoly->points + i, &ppt, 1);
+	             coord = Tcl_NewIntObj((int)ppt.x);
+	             Tcl_ListObjAppendElement(interp, cpair, coord);
+	             coord = Tcl_NewIntObj((int)ppt.y);
+	             Tcl_ListObjAppendElement(interp, cpair, coord);
+	             Tcl_ListObjAppendElement(interp, elist, cpair);
+		  }
+	       }
+	       else {
+		  splineptr pspline;
+		  pspline = (splineptr)(*eptr);
+	          Tcl_ListObjAppendElement(interp, elist,
+				Tcl_NewStringObj("spline", -1));
+		  for (i = 0; i < 4; i++) {
+		     cpair = Tcl_NewListObj(0, NULL);
+		     UTransformbyCTM(&hierCTM, pspline->ctrl + i, &ppt, 1);
+	             coord = Tcl_NewIntObj((int)ppt.x);
+	             Tcl_ListObjAppendElement(interp, cpair, coord);
+	             coord = Tcl_NewIntObj((int)ppt.y);
+	             Tcl_ListObjAppendElement(interp, cpair, coord);
+	             Tcl_ListObjAppendElement(interp, elist, cpair);
+		  }
+	       }
+	       Tcl_ListObjAppendElement(interp, objPtr, elist);
+	    }
+	    Tcl_SetObjResult(interp, objPtr);
+	 }
 	 break;
    }
    return XcTagCallback(interp, objc, objv);

@@ -1061,11 +1061,12 @@ void panbutton(u_int ptype, int x, int y, float value)
 	    u2u_snap(&areawin->save);
 	    areawin->origin = areawin->save;
 #ifdef TCL_WRAPPER
-	    Tk_CreateEventHandler(areawin->area, PointerMotionMask,
-			(Tk_EventProc *)xctk_drag, NULL);
+	    Tk_CreateEventHandler(areawin->area, PointerMotionMask |
+			ButtonMotionMask, (Tk_EventProc *)xctk_drag, NULL);
 #else
-	    xcAddEventHandler(areawin->area, PointerMotionMask, False,
-			(xcEventHandler)xlib_drag, NULL);
+	    xcAddEventHandler(areawin->area, PointerMotionMask |
+			ButtonMotionMask , False, (xcEventHandler)xlib_drag,
+			NULL);
 #endif
 	 }
 	 return;
@@ -2200,8 +2201,9 @@ int functiondispatch(int function, short value, int x, int y)
 	    select_connected_pins();
 	    XDefineCursor(dpy, areawin->window, ARROW);
 #ifdef TCL_WRAPPER
-	    Tk_CreateEventHandler(areawin->area, ButtonMotionMask,
-			(Tk_EventProc *)xctk_drag, NULL);
+	    Tk_CreateEventHandler(areawin->area, ButtonMotionMask |
+			PointerMotionMask, (Tk_EventProc *)xctk_drag,
+			NULL);
 #endif
 	 }
 	 break;
@@ -2284,11 +2286,12 @@ int functiondispatch(int function, short value, int x, int y)
 	    eventmode = RESCALE_MODE;
 	    UDrawRescaleBox(&areawin->save);
 #ifdef TCL_WRAPPER
-	    Tk_CreateEventHandler(areawin->area, ButtonMotionMask,
-		(Tk_EventProc *)xctk_drag, NULL);
+	    Tk_CreateEventHandler(areawin->area, PointerMotionMask |
+		ButtonMotionMask, (Tk_EventProc *)xctk_drag, NULL);
 #else
-	    xcAddEventHandler(areawin->area, ButtonMotionMask, False,
-		(xcEventHandler)xlib_drag, NULL);
+	    xcAddEventHandler(areawin->area, PointerMotionMask |
+		ButtonMotionMask, False, (xcEventHandler)xlib_drag,
+		NULL);
 #endif
 	 }
 	 break;
@@ -3339,6 +3342,7 @@ void elementrescale(float newscale)
       register_for_undo(XCF_Rescale, UNDO_MORE, areawin->topinstance,
              SELTOGENERIC(selectobj), (double)oldsize);
    }
+   calcbbox(areawin->topinstance);
 }
 
 /*-------------------------------------------------*/
@@ -5568,11 +5572,12 @@ void copydrag()
 	 XDefineCursor(dpy, areawin->window, COPYCURSOR);
 	 eventmode = COPY_MODE;
 #ifdef TCL_WRAPPER
-         Tk_CreateEventHandler(areawin->area, PointerMotionMask,
-		(Tk_EventProc *)xctk_drag, NULL);
+         Tk_CreateEventHandler(areawin->area, PointerMotionMask |
+		ButtonMotionMask, (Tk_EventProc *)xctk_drag, NULL);
 #else
-         XtAddEventHandler(areawin->area, PointerMotionMask, False, 
-		(XtEventHandler)xlib_drag, NULL);
+         XtAddEventHandler(areawin->area, PointerMotionMask |
+		ButtonMotionMask, False, (XtEventHandler)xlib_drag,
+		NULL);
 #endif
       }
       select_invalidate_netlist();
@@ -5597,11 +5602,13 @@ void copy_op(int op, int x, int y)
       areawin->attachto = -1;
       W3printf("");
 #ifdef TCL_WRAPPER
-      xcRemoveEventHandler(areawin->area, PointerMotionMask, False, 
-	    (xcEventHandler)xctk_drag, NULL);
+      xcRemoveEventHandler(areawin->area, PointerMotionMask |
+		ButtonMotionMask, False, (xcEventHandler)xctk_drag,
+		NULL);
 #else
-      xcRemoveEventHandler(areawin->area, PointerMotionMask, False, 
-	    (xcEventHandler)xlib_drag, NULL);
+      xcRemoveEventHandler(areawin->area, PointerMotionMask |
+		ButtonMotionMask, False, (xcEventHandler)xlib_drag,
+		NULL);
 #endif
       XDefineCursor(dpy, areawin->window, DEFAULTCURSOR);
       u2u_snap(&areawin->save);
@@ -5781,11 +5788,12 @@ void finish_op(int op, int x, int y)
       case(CATMOVE_MODE):
 	 u2u_snap(&areawin->save);
 #ifdef TCL_WRAPPER
-	 Tk_DeleteEventHandler(areawin->area, ButtonMotionMask,
-                (Tk_EventProc *)xctk_drag, NULL);
+	 Tk_DeleteEventHandler(areawin->area, ButtonMotionMask |
+		PointerMotionMask, (Tk_EventProc *)xctk_drag, NULL);
 #else
-	 xcRemoveEventHandler(areawin->area, ButtonMotionMask, FALSE,
-		(xcEventHandler)xlib_drag, NULL);
+	 xcRemoveEventHandler(areawin->area, ButtonMotionMask |
+		PointerMotionMask, FALSE, (xcEventHandler)xlib_drag,
+		NULL);
 #endif
 	 if (op == XCF_Cancel) {
 	    /* Just regenerate the library where we started */
@@ -5807,11 +5815,12 @@ void finish_op(int op, int x, int y)
       case(MOVE_MODE):
 	 u2u_snap(&areawin->save);
 #ifdef TCL_WRAPPER
-	 Tk_DeleteEventHandler(areawin->area, ButtonMotionMask,
-                (Tk_EventProc *)xctk_drag, NULL);
+	 Tk_DeleteEventHandler(areawin->area, ButtonMotionMask |
+		PointerMotionMask, (Tk_EventProc *)xctk_drag, NULL);
 #else
-	 xcRemoveEventHandler(areawin->area, ButtonMotionMask, FALSE,
-		(xcEventHandler)xlib_drag, NULL);
+	 xcRemoveEventHandler(areawin->area, ButtonMotionMask |
+		PointerMotionMask, FALSE, (xcEventHandler)xlib_drag,
+		NULL);
 #endif
 	 if (op == XCF_Cancel) {
 	    /* If we came from the library with an object instance, in	*/
@@ -5853,8 +5862,12 @@ void finish_op(int op, int x, int y)
       case(RESCALE_MODE):
 
 #ifdef TCL_WRAPPER
-	 Tk_DeleteEventHandler(areawin->area, ButtonMotionMask,
-                (Tk_EventProc *)xctk_drag, NULL);
+	 Tk_DeleteEventHandler(areawin->area, PointerMotionMask |
+		ButtonMotionMask, (Tk_EventProc *)xctk_drag, NULL);
+#else
+	 xcRemoveEventHandler(areawin->area, PointerMotionMask |
+		ButtonMotionMask, FALSE, (xcEventHandler)xlib_drag,
+		NULL);
 #endif
 	 if (op != XCF_Cancel) {
 	    fscale = UDrawRescaleBox(&areawin->save);
@@ -5867,8 +5880,12 @@ void finish_op(int op, int x, int y)
 	 UDrawBox(areawin->origin, areawin->save);
 
 #ifdef TCL_WRAPPER
-	 Tk_DeleteEventHandler(areawin->area, ButtonMotionMask,
-                (Tk_EventProc *)xctk_drag, NULL);
+	 Tk_DeleteEventHandler(areawin->area, ButtonMotionMask |
+		PointerMotionMask, (Tk_EventProc *)xctk_drag, NULL);
+#else
+	 xcRemoveEventHandler(areawin->area, ButtonMotionMask |
+		PointerMotionMask, FALSE, (xcEventHandler)xlib_drag,
+		NULL);
 #endif
 	 /* Zero-width boxes act like a normal selection.  Otherwise,	*/
  	 /* proceed with the area select.				*/
@@ -5891,11 +5908,12 @@ void finish_op(int op, int x, int y)
 	 u2u_snap(&areawin->save);
 
 #ifdef TCL_WRAPPER
-	 Tk_DeleteEventHandler(areawin->area, PointerMotionMask,
-                (Tk_EventProc *)xctk_drag, NULL);
+	 Tk_DeleteEventHandler(areawin->area, PointerMotionMask |
+		ButtonMotionMask, (Tk_EventProc *)xctk_drag, NULL);
 #else
-         xcRemoveEventHandler(areawin->area, PointerMotionMask, False,
-               (xcEventHandler)xlib_drag, NULL);
+         xcRemoveEventHandler(areawin->area, PointerMotionMask |
+		ButtonMotionMask, False, (xcEventHandler)xlib_drag,
+		NULL);
 #endif
 	 if (op != XCF_Cancel)
 	    panbutton((u_int) 5, (areawin->width >> 1) - (x - areawin->origin.x),
