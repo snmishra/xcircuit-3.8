@@ -1635,8 +1635,9 @@ void catalog_op(int op, int x, int y)
                      XDefineCursor(dpy, areawin->window, COPYCURSOR);
                      eventmode = COPY_MODE;
 #ifndef TCL_WRAPPER
-                     xcAddEventHandler(areawin->area, PointerMotionMask, False,
-			  (xcEventHandler)xlib_drag, NULL);
+                     xcAddEventHandler(areawin->area, PointerMotionMask |
+				ButtonMotionMask, False,
+				(xcEventHandler)xlib_drag, NULL);
 #endif
 	          }
 	          else {
@@ -1648,8 +1649,8 @@ void catalog_op(int op, int x, int y)
 #ifdef TCL_WRAPPER
 		  /* fprintf(stderr, "Creating event handler for xctk_drag: "); */
 		  /* printeventmode();		*/
-                  Tk_CreateEventHandler(areawin->area, PointerMotionMask,
-			(Tk_EventProc *)xctk_drag, NULL);
+                  Tk_CreateEventHandler(areawin->area, PointerMotionMask |
+			ButtonMotionMask, (Tk_EventProc *)xctk_drag, NULL);
 #endif
                   catreturn();
                }
