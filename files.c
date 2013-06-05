@@ -4612,7 +4612,7 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
          else if (!strcmp(keyword, "endgate"));    /* also ignore */
 	 else if (!strcmp(keyword, "xyarray"));	   /* ignore for now */
          else {
-	    char *tmpptr, *libobjname;
+	    char *tmpptr, *libobjname, *objnamestart;
 	    Boolean matchtech, found = False;
 
 	    /* First, make sure this is not a general comment line */
@@ -4638,6 +4638,13 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 	    parse_ps_string(keyword, keyword, 79, FALSE, FALSE);
 	    matchtech =  (strstr(keyword, "::") == NULL) ? FALSE : TRUE;
 
+	    /* If the file contains a reference to a bare-word device	*/
+	    /* without a technology prefix, then it is probably an	*/
+	    /* older-version file.  If this is the case, then the file	*/
+	    /* should define an unprefixed object, which will be given	*/
+	    /* a null prefix (just "::" by itself).  Look for that	*/
+	    /* match.							*/
+
 	    /* (Assume that this line calls an object instance) */
 	    /* Double loop through user libraries 		*/
 
@@ -4649,13 +4656,13 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 			xobjs.userlibs[k].library + j;
 
 		  /* Objects which have a technology ("<lib>::<obj>")	*/
-		  /* must compare exactly.  Objects which don't	 will	*/
-		  /* match any object of the same name in any library	*/
-		  /* technology.					*/
+		  /* must compare exactly.  Objects which don't	can 	*/
+		  /* only match an object of the same name with a null	*/
+		  /* technology prefix.					*/
 
 		  libobjname = (*libobj)->name;
 		  if (!matchtech) {
-		     char *objnamestart = strstr(libobjname, "::");
+		     objnamestart = strstr(libobjname, "::");
 		     if (objnamestart != NULL) libobjname = objnamestart + 2;
 		  }
 	          if (!objnamecmp(keyword, libobjname)) {
@@ -4682,6 +4689,10 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 			}
 			if (!is_alias) continue;
 		     }
+
+		     if (!matchtech && ((*libobj)->name != objnamestart))
+			continue;	// no prefix in file must match
+					// null prefix in library object.
 
 		     found = True;
 		     NEW_OBJINST(newinst, localdata);
