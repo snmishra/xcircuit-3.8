@@ -45,12 +45,14 @@ option add *pagemenu*background beige
 
 option add *filelist*activeBackground #805630
 option add *filelist*foreground #805630
+option add *filelist*background white
 option add *filelist*activeForeground beige
 option add *filelist*font -*-times-medium-r-normal--12-*
 option add *filelist*txt*font -*-courier-medium-r-normal--12-*
 
 option add *output*activeBackground #805630
 option add *output*foreground #805630
+option add *output*background white
 option add *output*activeForeground beige
 option add *output*font -*-times-medium-r-normal--12-*
 option add *output*txt*font -*-courier-medium-r-normal--12-*
@@ -61,12 +63,14 @@ option add *output.textent.buto.orientmenu*background beige
 
 option add *help*activeBackground #805630
 option add *help*foreground #805630
+option add *help*background white
 option add *help*activeForeground beige
 option add *help*font -*-times-medium-r-normal--12-*
 option add *help*txt*font -*-times-courier-r-normal--12-*
 
 option add *dialog*activeBackground #805630
 option add *dialog*foreground #805630
+option add *dialog*background white
 option add *dialog*activeForeground beige
 option add *dialog*font -*-times-medium-r-normal--12-*
 option add *dialog*txt*font -*-courier-medium-r-normal--12-*
