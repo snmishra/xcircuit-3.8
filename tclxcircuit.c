@@ -4066,7 +4066,10 @@ int xctcl_label(ClientData clientData, Tcl_Interp *interp,
    newobjv[0] = Tcl_NewStringObj("tcl_label", 9);
    Tcl_IncrRefCount(newobjv[0]);
    for (i = 1; i < objc; i++) {
-      newobjv[i] = Tcl_DuplicateObj(objv[i]);
+      if (Tcl_IsShared(objv[i]))
+         newobjv[i] = Tcl_DuplicateObj(objv[i]);
+      else
+         newobjv[i] = objv[i];
       Tcl_IncrRefCount(newobjv[i]);
    }
 

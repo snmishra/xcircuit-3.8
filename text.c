@@ -546,6 +546,17 @@ static char *nonprint[] = {
 	"Font", "Scale", "Color", "Margin_Stop", "Kern", 
         "Parameter", ">", "Net_Name", "Error", NULL}; /* (jdk) */
 
+/* Handling of certain text escapes (subscript, superscript, underline,	*/
+/* and overline) in TeX (added by Fabian Inostroza)			*/
+
+static char *nonprinttex[] = {
+	"", "_{", "^{", "}",
+	"\\underline{", "\\overline{", "}",
+	"Tab_Stop", "Tab_Forward", "Tab_Backward",
+	"Halfspace", "Quarterspace", "<Return>",
+	"Font", "Scale", "Color", "Margin_Stop", "Kern", 
+        "Parameter", ">", "Net_Name", "Error", NULL};
+
 /*----------------------------------------------------------------------*/
 /* charprint():  							*/
 /* Write a printable version of the character or command at the 	*/
@@ -591,6 +602,43 @@ void charprint(char *sout, stringpart *strptr, int locpos)
 }
 
 /*----------------------------------------------------------------------*/
+/* Version of the above, for printing LaTeX strings			*/
+/* added by Fabian Inostroza  7/14/2013					*/
+/*----------------------------------------------------------------------*/
+
+void charprinttex(char *sout, stringpart *strptr, int locpos)
+{
+   char sc;
+ 
+   switch (strptr->type) {
+      case TEXT_STRING:
+	 if (strptr->data.string) {
+            if (locpos > strlen(strptr->data.string)) {
+	       strcpy(sout, "<ERROR>");
+	    }
+            else sc = *(strptr->data.string + locpos);
+            if (isprint(sc))
+	       sprintf(sout, "%c", sc);
+            else
+	       sprintf(sout, "/%03o", (u_char)sc);
+	 }
+	 else
+	    *sout = '\0';
+	 break;
+      case FONT_NAME:
+	 sprintf(sout, "");
+	 break;
+      case FONT_SCALE:
+      case KERN:
+      case PARAM_START:
+	 break;
+      default:
+         strcpy(sout, nonprinttex[strptr->type]);
+	 break;
+   }
+}
+
+/*----------------------------------------------------------------------*/
 /* Print a string (allocates memory for the string; must be freed by	*/
 /* the calling routine).						*/
 /*----------------------------------------------------------------------*/
@@ -615,6 +663,28 @@ char *xcstringtostring(stringpart *strtop, objinstptr localinst, Boolean textonl
          sout = (char *)realloc(sout, strlen(sout) + 2);
          strcat(sout, "!");
       }
+   }
+   return sout;
+}
+
+/*----------------------------------------------------------------------*/
+/* Version of the above, for printing LaTeX strings			*/
+/* added by Fabian Inostroza  7/14/2013					*/
+/*----------------------------------------------------------------------*/
+
+char *textprinttex(stringpart *strtop, objinstptr localinst)
+{
+   stringpart *strptr;
+   int pos = 0, locpos;
+   char *sout;
+
+   sout = (char *)malloc(1);
+   sout[0] = '\0';
+
+   while ((strptr = findstringpart(pos++, &locpos, strtop, localinst)) != NULL) {
+      charprinttex(_STR, strptr, locpos);
+      sout = (char *)realloc(sout, strlen(sout) + strlen(_STR) + 1);
+      strcat(sout, _STR);
    }
    return sout;
 }

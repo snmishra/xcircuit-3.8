@@ -2755,7 +2755,7 @@ void UDoLatex(objinstptr theinstance, short level, FILE *f,
 		       xfpos.y += 0.056;
 		       xfpos.x /= scale2;
 		       xfpos.y /= scale2;
-		       ltext = textprint(thislabel->string, theinstance);
+		       ltext = textprinttex(thislabel->string, theinstance);
 		       tbjust = thislabel->justify & (NOTBOTTOM | TOP);
 		       lrjust = thislabel->justify & (NOTLEFT | RIGHT);
 
@@ -2834,7 +2834,7 @@ void TopDoLatex()
 
    /* Modified to use \scalebox and \parbox by Alex Tercete, June 2008 */
 
-   fprintf(f, "\\begin{center}\n");
+   // fprintf(f, "\\begin{center}\n");
 
    outscale = xobjs.pagelist[areawin->page]->outscale;
    psscale = getpsscale(outscale, areawin->page);
@@ -2867,8 +2867,8 @@ void TopDoLatex()
    fprintf(f, "   \\scalebox{%g}{\n", outscale);
    fprintf(f, "   \\normalsize\n");
    fprintf(f, "   \\parbox{%gin}{\n", (((float)width * psscale) / 72.0) / outscale);
-   fprintf(f, "   \\includegraphics[scale=%g]{%s%s}\\\\\n", 1.0 / outscale,
-			filename, extend);
+   fprintf(f, "   \\includegraphics[scale=%g]{%s}\\\\\n", 1.0 / outscale,
+    			filename);
    fprintf(f, "   %% translate x=%d y=%d scale %3.2f\n", tx, ty, psscale);
 
    UPushCTM();		/* Save current state */
@@ -2880,7 +2880,7 @@ void TopDoLatex()
    fprintf(f, "   } %% close \'scalebox\'\n");
    fprintf(f, "   \\vspace{-\\baselineskip} %% this is not"
 		" necessary, but looks better\n");
-   fprintf(f, "\\end{center}\n");
+   // fprintf(f, "\\end{center}\n");
    fclose(f);
 
    Wprintf("Wrote auxiliary file %s.tex", filename);
