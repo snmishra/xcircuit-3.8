@@ -162,17 +162,23 @@ int XPutImage(Display *dpy, Drawable d, GC gc, XImage *img, int src_x, int src_y
 }
 #endif
 
+// The following two functions may be defined as macros. . .
+
+#ifndef XSync
 int XSync(Display *dpy, Bool discard)
 {
 	unimplemented("XSync");
 	return 1;
 }
+#endif
 
+#ifndef XFlush
 int XFlush(Display *dpy)
 {
 	unimplemented("XFlush");
 	return 1;
 }
+#endif
 
 #ifndef STATIC_BUILD
 Cursor XCreateFontCursor(Display *dpy, unsigned int shape)

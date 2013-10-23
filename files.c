@@ -5036,7 +5036,7 @@ void savetechnology(char *technology, char *outname)
    xc_tilde_expand(outfile, 149);
    while(xc_variable_expand(outfile, 149));
 
-   ps = fopen(outfile, "w");
+   ps = fopen(outfile, "wb");
    if (ps == NULL) {
       Wprintf("Can't open PS file.");
       return;
@@ -5385,7 +5385,7 @@ void savefile(short mode)
    xc_tilde_expand(outname, 149);
    while(xc_variable_expand(outname, 149));
 
-   ps = fopen(outname, "w");
+   ps = fopen(outname, "wb");
    if (ps == NULL) {
       Wprintf("Can't open file %s for writing.", outname);
       return;
