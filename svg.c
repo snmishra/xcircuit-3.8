@@ -257,7 +257,7 @@ void SVGCreateImages(int page)
        waitpid(pid, NULL, 0);
        unlink(fname);
 #else
-       _spawnl(_P_WAIT, GM_EXC, GM_EXEC, "convert", fname, outname, NULL);
+       _spawnl(_P_WAIT, GM_EXEC, GM_EXEC, "convert", fname, outname, NULL);
        _unlink(fname);
 #endif
        Fprintf(stdout, "Generated standalone PNG image file %s\n", outname);
