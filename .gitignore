@@ -36,3 +36,5 @@ spiceparser/spiceparser.dll
 spiceparser/spiceparser.pyc
 Makefile.in
 configure
+resources.res
+xcircuit-win32.exe
