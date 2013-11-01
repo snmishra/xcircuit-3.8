@@ -1,4 +1,4 @@
-# Makefile for MinGW gcc64 compiler (modified from Makefile.win32)
+# -*-makefile-gmake-*- for MinGW gcc64 compiler (modified from Makefile.win32)
 
 # Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
 # 2003, 2004  Free Software Foundation, Inc.
@@ -368,7 +368,7 @@ install-data-local: lib/xcircuit.1
 # So we make a symbolic link if SHDLIB_EXT != .so
 
 install-tcl: xcircexec$(EXEEXT) lib/$(INTERP_PATH)/$(WRAPPER_OBJ) lib/$(INTERP_PATH)/$(WRAPPER_SH) lib/$(INTERP_PATH)/$(WRAPPER_INIT) xcircuit-win32$(EXEEXT)
-	# if $(prefix) $(RMDIR) $(prefix)
+# if $(prefix) $(RMDIR) $(prefix)
 	mkdir -p $(prefix)
 	@echo "Installing standard XCircuit library files"
 	$(MK) $(AM_MAKEFLAGS) install-data-local
@@ -386,20 +386,20 @@ install-tcl: xcircexec$(EXEEXT) lib/$(INTERP_PATH)/$(WRAPPER_OBJ) lib/$(INTERP_P
 	$(INSTALL_DATA) xcircuit-win32$(EXEEXT) $(DESTDIR)$(bindir)
 
 install-win32: xcircuit$(EXEEXT)
-	if exist $(prefix) $(RMDIR) $(prefix)
+	test -d $(prefix) && $(RMDIR) $(prefix)
 	$(MK) $(AM_MAKEFLAGS) install-data-local "librarydir=$(prefix)"
 	$(INSTALL_DATA) xcircuit$(EXEEXT) $(DESTDIR)$(prefix)
 
 clean:
 	-$(RM) lib/$(INTERP_PATH)/$(WRAPPER_OBJ) lib/$(INTERP_PATH)/$(WRAPPER_SH)
-	-for %%e in (ilk exp pdb lib) do @if exist lib/$(INTERP_PATH)/xcircuit.%%e $(RM) lib/$(INTERP_PATH)/xcircuit.%%e
+	-for ext in ilk exp pdb lib ; do test -f lib/$(INTERP_PATH)/xcircuit.$$ext && $(RM) lib/$(INTERP_PATH)/xcircuit.$$ext; done
 	-$(RM) lib/$(INTERP_PATH)/$(WRAPPER_INIT)
-	-for %%f in (*.$(OBJEXT) xcircexec$(EXEEXT) lib/xcircuit.1 xcircuit$(EXEEXT) xcircuit.suo) do $(RM) %%f
-	-for %%e in (aps res) do $(RM) resources.%%e
-	-for %%e in (ilk exp pdb lib) do @if exist xcircexec.%%e $(RM) xcircexec.%%e
-	-for %%e in (ilk exp pdb lib) do @if exist xcircuit.%%e $(RM) xcircuit.%%e
-	-for %%e in (ilk exp pdb lib) do @if exist pp.%%e $(RM) pp.%%e
-	-for %%e in (ilk exp pdb lib exe) do @if exist xcircuit-win32.%%e $(RM) xcircuit-win32.%%e
+	-for obj in *.$(OBJEXT) xcircexec$(EXEEXT) lib/xcircuit.1 xcircuit$(EXEEXT) xcircuit.suo ; do $(RM) $$obj; done
+	-for e in aps res; do $(RM) resources.$$e; done
+	-for e in ilk exp pdb lib; do $(RM) xcircexec.$$e; done
+	-for e in ilk exp pdb lib; do $(RM) xcircuit.$$e; done
+	-for e in ilk exp pdb lib; do $(RM) pp.$$e; done
+	-for e in ilk exp pdb lib exe; do $(RM) xcircuit-win32.$$e; done
 	-$(RM) menudep$(EXEEXT) menudep.h
 	-$(RM) pp$(EXEEXT)
 	-$(RM) *.pdb

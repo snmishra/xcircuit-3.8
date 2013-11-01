@@ -18,6 +18,9 @@ lib/xcircuit.1
 lib/tcl/xcircuit.sh
 lib/tcl/xcircuit.tcl
 *.o
+*.obj
+*.pdb
+*.ilk
 *.so
 *~
 UPDATE_ME
@@ -38,3 +41,5 @@ Makefile.in
 configure
 resources.res
 xcircuit-win32.exe
+pp.exe
+lib/tcl/xcircuit.*

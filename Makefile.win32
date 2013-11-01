@@ -18,7 +18,9 @@
 INSTALLDIR = D:\Software\XCircuit-tcl-dev
 TEMPDIR    = D:\Temp
 
-GSDIR      = C:\gs\gs8.15
+GSDIR      = d:\local\gs9.07
+GMDIR      = C:\Octave\Octave3.6.2_gcc4.6.2
+GM_EXEC = $(GMDIR)\gm.exe
 
 # Possible values: tcl, win32
 BUILD_TYPE = tcl
@@ -29,8 +31,15 @@ USE_WIN32_DOTNET = 0
 XCCOMDIR         = xccom2
 
 # Additional settings for tcl build
-TCLDIR     = D:\Software\Tcl
-TCLVERSION = 84
+TCLDIR     = C:\\Tcl32
+TCLVERSION = 85
+
+# Some defines:
+SIZEOF_VOID_P = 4
+SIZEOF_UNSIGNED_INT = 4
+SIZEOF_UNSIGNED_LONG = 4
+SIZEOF_UNSIGNED_LONG_LONG = 8
+
 
 ####################################################################
 # End of configuration. DO NOT CHANGE ANYTHING AFTER THIS POINT!!! #
@@ -43,7 +52,7 @@ MAKE = $(MAKE) -f Makefile.win32
 srcdir = .
 top_srcdir = .
 top_builddir = .
-mkinstalldirs = mkdir
+mkinstalldirs = md
 
 menudep_SOURCES = menudep.c
 menudep_OBJECTS = menudep.$(OBJEXT)
@@ -55,7 +64,7 @@ xcircuit_OBJECTS = elements.$(OBJEXT) events.$(OBJEXT) \
 	libraries.$(OBJEXT) menucalls.$(OBJEXT) netlist.$(OBJEXT) \
 	ngspice.$(OBJEXT) opengl.$(OBJEXT) parameter.$(OBJEXT) \
 	python.$(OBJEXT) rcfile.$(OBJEXT) render.$(OBJEXT) \
-	schema.$(OBJEXT) selection.$(OBJEXT) text.$(OBJEXT) \
+	schema.$(OBJEXT) selection.$(OBJEXT) svg.$(OBJEXT) text.$(OBJEXT) \
 	undo.$(OBJEXT) xcircuit.$(OBJEXT) $(WIN32_OBJECTS)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -87,7 +96,7 @@ XC_CFLAGS = $(XC_CFLAGS) -DUSE_WIN32_COM
 XC_DEPEND = $(XCCOMDIR)\XCCom.lib
 XC_LIBS = $(XCCOMDIR)\XCCom.lib ole32.lib oleaut32.lib
 !if "$(USE_WIN32_DOTNET)" != "0"
-XC_CFLAGS = $(XC_CFLAGS) -DUSE_WIN32_DOTNET
+XC_CFLAGS = $(XC_CFLAGS) -DUSE_WIN32_DOTNET 
 !endif
 !endif
 !else
@@ -95,7 +104,7 @@ WIN32_OBJECTS = tclxcircuit.$(OBJEXT) tkSimple.$(OBJEXT) w32x11.$(OBJEXT)
 BUILTINS_DIR  = \"$(librarydir:\=/)\"
 SCRIPTS_DIR  = \"$(scriptsdir:\=/)\"
 STARTUP_FILE  = xcstartup.tcl
-XC_CFLAGS     = -DTCL_WRAPPER -D_CRT_SECURE_NO_DEPRECATE
+XC_CFLAGS     = -DTCL_WRAPPER -D_CRT_SECURE_NO_DEPRECATE -DHAVE_U_CHAR
 XC_INCLUDES   = -I$(TCLDIR)\include
 XC_LIBS       = $(TCLDIR)\lib\tcl$(TCLVERSION).lib $(TCLDIR)\lib\tk$(TCLVERSION).lib
 !endif
@@ -106,7 +115,7 @@ ALL_TARGET = all-recursive
 INSTALL_TARGET = install
 
 CC = cl
-CFLAGS = -Zi -DSPICE_EXEC=\"$(SPICE_EXEC:\=/)\" -DHAVE_PUTENV -DGS_EXEC=\"$(GS_EXEC:\=/)\" -DXC_WIN32 -DDOUBLEBUFFER $(XC_CFLAGS)
+CFLAGS = -Zi -DSPICE_EXEC=\"$(SPICE_EXEC:\=/)\" -DHAVE_PUTENV -DGS_EXEC=\"$(GS_EXEC:\=/)\" -DGM_EXEC=\"$(GM_EXEC:\=/)\" -DXC_WIN32 -DDOUBLEBUFFER $(XC_CFLAGS) -DSCRIPTS_DIR=\"$(scriptsdir)\"  -DSIZEOF_VOID_P=$(SIZEOF_VOID_P) -DSIZEOF_UNSIGNED_INT=$(SIZEOF_UNSIGNED_INT) -DSIZEOF_UNSIGNED_LONG=$(SIZEOF_UNSIGNED_LONG) -DSIZEOF_UNSIGNED_LONG_LONG=$(SIZEOF_UNSIGNED_LONG_LONG)
 CPP = cl
 CPPFLAGS =
 RM = del /q
@@ -142,8 +151,8 @@ OBJEXT = obj
 PACKAGE = xcircuit
 PACKAGE_NAME = xcircuit
 PATH_SEPARATOR = \\
-VERSION = 3.7
-REVISION = 21
+VERSION = 3.8
+REVISION = 46
 SHDLIB_EXT = .dll
 SHLIB_CFLAGS = /LD /ML
 SHLIB_LIB_SPECS =
@@ -162,7 +171,7 @@ includedir = $(prefix)\include
 libdir = $(prefix)\lib
 libexecdir = $(prefix)\bin
 mandir = $(prefix)\doc
-mkdir_p = mkdir
+mkdir_p = md
 
 # Temporary directory (if not overridden by environment variable TMPDIR)
 tmpdir = $(TEMPDIR)
@@ -184,7 +193,7 @@ xcircuit_SOURCES = elements.c events.c filelist.c files.c \
 	flate.c fontfile.c formats.c functions.c graphic.c \
 	help.c keybindings.c libraries.c menucalls.c \
 	netlist.c ngspice.c opengl.c parameter.c python.c \
-	rcfile.c render.c schema.c selection.c text.c undo.c \
+	rcfile.c render.c schema.c selection.c svg.c text.c undo.c \
 	tclxcircuit.c tkSimple.c xcircuit.c w32x11.c
 
 xcircuit_DEPEND = $(XC_DEPEND)
@@ -380,7 +389,7 @@ $(ALL_TARGET):
 	$(MAKE) $(XCIRCUIT_TARGET)
 
 $(INSTALL_TARGET):
-	(MAKE) install-tcl
+	$(MAKE) install-tcl
 
 examples: all
 !if "$(BUILD_TYPE)" == "win32" && "$(USE_WIN32_COM)" != "0"
