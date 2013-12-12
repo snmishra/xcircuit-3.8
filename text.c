@@ -1570,8 +1570,8 @@ void UDrawString0(labelptr drawlabel, int passcolor, objinstptr localinst,
 
 	     case FONT_SCALE:
 		tmpscale = natscale * strptr->data.scale;
-	        if (baseline == newpoint.y) /* reset top-level scale */
-		   natscale = tmpscale;
+	        // if (baseline == newpoint.y) /* reset top-level scale */
+		//    natscale = tmpscale;
 		break;
 
 	     case KERN:

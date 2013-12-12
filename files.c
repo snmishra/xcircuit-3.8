@@ -2684,12 +2684,10 @@ void readlabel(objectptr localdata, char *lineptr, stringpart **strhead)
             if (isdigit(*nextptr)) { /* second form of "cf" command---includes scale */
 	       float locscale;
 	       sscanf(nextptr, "%f", &locscale);
-	       if (locscale != 1.0) {
-	          newpart->type = FONT_SCALE;
-	          newpart->data.scale = locscale;
-	          makesegment(strhead, *strhead);
-	          newpart = *strhead;
-	       }
+	       newpart->type = FONT_SCALE;
+	       newpart->data.scale = locscale;
+	       makesegment(strhead, *strhead);
+	       newpart = *strhead;
             }
 	    newpart->type = FONT_NAME;
 	    newpart->data.font = j;
