@@ -2536,7 +2536,7 @@ proc xcircuit::makemenus {window} {
 	-variable XCWinOps(${window},showclipmasks) \
 	-onvalue show -offvalue hide -command \
 	{xcircuit::config clipmasks $XCWinOps($XCOps(focus),showclipmasks)}
-   $m add check -label "Show Library Namespaces" \
+   $m add check -label "Show Technology Namespaces" \
 	-variable XCWinOps(${window},namespaces) \
 	-onvalue true -offvalue false -command \
 	{xcircuit::config technologies $XCWinOps($XCOps(focus),namespaces)}
