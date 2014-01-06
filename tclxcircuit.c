@@ -6749,10 +6749,19 @@ int xctcl_config(ClientData clientData, Tcl_Interp *interp,
 	    Tcl_SetResult(interp, (xobjs.showtech) ? "true" : "false", NULL);
 	 }
 	 else {
+	    short libnum;
+
 	    result = Tcl_GetBooleanFromObj(interp, objv[2], &tmpint);
 	    if (result != TCL_OK) return result;
 	    if (xobjs.showtech != (Boolean) tmpint) {
 	       xobjs.showtech = (Boolean) tmpint;
+
+	       /* When namespaces are included, the length of the printed */
+	       /* name may cause names to overlap, so recompose each	  */
+	       /* library when the showtech flag is changed.		  */
+	       for (libnum = 0; libnum < xobjs.numlibs; libnum++)
+		  composelib(LIBRARY + libnum);
+
 	       if (eventmode == CATALOG_MODE) refresh(NULL, NULL, NULL);
             }
 	 }
