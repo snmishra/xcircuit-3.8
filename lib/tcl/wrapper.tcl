@@ -1552,6 +1552,20 @@ proc xcircuit::promptmakeobject {} {
 
 #----------------------------------------------------------------------
 
+proc xcircuit::promptreplaceobject {} {
+   global XCOps
+   if {[xcircuit::select] > 0} {
+      set XCOps(dialog) replaceobject
+      .dialog.bbar.apply configure -command \
+	  {xcircuit::element selected object [.dialog.textent.txt get]}
+      .dialog.textent.title.field configure -text "Name of replacement object"
+      .dialog.textent.txt delete 0 end
+      xcircuit::popupdialog
+   }
+}
+
+#----------------------------------------------------------------------
+
 proc xcircuit::promptloadlibrary {} {
    global XCOps
 
@@ -2343,6 +2357,7 @@ proc xcircuit::makemenus {window} {
 	"${window}.mainframe.toolbar.bs invoke"
    $m add command -label "Make Wire" -command \
 	"${window}.mainframe.toolbar.bw invoke"
+   $m add command -label "Replace" -command {xcircuit::promptreplaceobject}
    $m add command -label "Join" -command \
 	"${window}.mainframe.toolbar.bpz invoke"
    $m add command -label "Unjoin" -command \
