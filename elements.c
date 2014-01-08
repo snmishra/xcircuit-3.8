@@ -521,6 +521,7 @@ Boolean labeltext(int keypressed, char *clientdata)
    Boolean r = True, do_redraw = False;
    short tmplength, tmpheight, cfont;
    TextExtents tmpext;
+   TechPtr oldtech, newtech;
 
    curlabel = TOLABEL(EDITPART);
 
@@ -657,6 +658,10 @@ Boolean labeltext(int keypressed, char *clientdata)
 			(strstr(curlabel->string->nextpart->data.string, "::")
 			== NULL))
 	       libobjname = techptr + 2;
+
+	    /* Save a pointer to the old technology before we overwrite the name */
+	    oldtech = GetObjectTechnology(libobj);
+
 	    strcpy(libobjname, curlabel->string->nextpart->data.string);
 
 	    /* If checkname() alters the name, it has to be copied back to */
@@ -672,6 +677,17 @@ Boolean labeltext(int keypressed, char *clientdata)
 	       redrawtext(curlabel);
 	    }
 	    AddObjectTechnology(libobj);
+
+	    /* If the technology name has changed, then both the old	*/
+	    /* technology and the new technology need to be marked as	*/
+	    /* having been modified.					*/
+
+	    newtech = GetObjectTechnology(libobj);
+
+	    if (oldtech != newtech) {
+	       if (oldtech) oldtech->flags |= (u_char)LIBRARY_CHANGED;
+	       if (newtech) newtech->flags |= (u_char)LIBRARY_CHANGED;
+	    }
 	 }
 
 	 /* Check if we altered a page name */

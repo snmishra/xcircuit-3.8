@@ -781,10 +781,11 @@ void composelib(short mode)
    int xpos = 0, ypos = areawin->height << 1;
    int nypos = 220, nxpos;
    short fval;
-   short llx, lly, width, height;
+   short llx, lly, urx, ury, width, height, xcenter;
 
    int totalarea, targetwidth;
    double scale, savescale;
+   short savemode;
    XPoint savepos;
 
    /* Also make composelib() a wrapper for composepagelib() */
@@ -815,8 +816,9 @@ void composelib(short mode)
 
    fval = findhelvetica();
 
-   /* experimental:  attempt to produce a library with the same aspect  */
-   /* ratio as the drawing window.                                      */
+   /* Attempt to produce a library with the same aspect ratio as the	*/
+   /* drawing window.  This is only approximate, and does not take	*/
+   /* into account factors such as the length of the name string.	*/
 
    totalarea = 0;
    for (spec = xobjs.userlibs[mode - LIBRARY].instlist; spec != NULL;
@@ -831,9 +833,9 @@ void composelib(short mode)
       drawinst->position.y = 0;
 
       /* Get the bounding box of the instance in the page's coordinate system */
-      calcinstbbox((genericptr *)(&drawinst), &llx, &lly, &width, &height);
-      width -= llx;	/* convert urx to width */
-      height -= lly;	/* convert ury to height */
+      calcinstbbox((genericptr *)(&drawinst), &llx, &lly, &urx, &ury);
+      width = urx - llx;
+      height = ury - lly;
       width += 30;	/* space padding */
       height += 30;	/* height padding */
       if (width < 200) width = 200;	/* minimum box width */
@@ -846,6 +848,8 @@ void composelib(short mode)
 
    /* generate the list of object instances and their labels */
 
+   savemode = eventmode;
+   eventmode = CATALOG_MODE;
    for (spec = xobjs.userlibs[mode - LIBRARY].instlist; spec != NULL;
 		spec = spec->next) {
       libobj = spec->thisinst->thisobject;
@@ -857,38 +861,28 @@ void composelib(short mode)
       drawinst->position.x = 0;
       drawinst->position.y = 0;
 
-      /* Get the bounding box of the instance in the page's coordinate system */
-      calcinstbbox((genericptr *)(&drawinst), &llx, &lly, &width, &height);
-      width -= llx;  /* convert urx to width */
-      height -= lly; /* convert ury to height */
-
-      /* Determine the area needed on the page to draw the object */
-
-      nxpos = xpos + ((width > 170) ? width + 30 : 200);
-      /* if ((nxpos > (areawin->width << 1)) && (xpos > 0)) { */
-      if ((nxpos > targetwidth) && (xpos > 0)) {
-	 nxpos -= xpos; 
-	 xpos = 0;
-	 ypos -= nypos;
-	 nypos = 200;
-      }
-      /* extra space of 20 is to leave room for the label */
-
-      if (height > (nypos - 50)) nypos = height + 50;
-
-      drawinst->position.x = xpos - llx;
-      drawinst->position.y = ypos - (height + lly);
-      if (width <= 170) drawinst->position.x += ((170 - width) >> 1);
-      if (height <= 170) drawinst->position.y -= ((170 - height) >> 1);
-      drawinst->color = DEFAULTCOLOR;
+      /* Generate the part;  unlike the usual NEW_OBJINST, the	*/
+      /* instance record isn't allocated.			*/
 
       PLIST_INCR(libpage); 
       *(libpage->plist + libpage->parts) = (genericptr)drawinst;
       libpage->parts++;
 
+      /* Get the bounding box of the instance in the page's coordinate system */
+      calcinstbbox((genericptr *)(&drawinst), &llx, &lly, &urx, &ury);
+      xcenter = (llx + urx) >> 1;
+      width = urx - llx;
+      height = ury - lly;
+
+      /* Add an ad-hoc spacing rule of 30 for padding space between objects */
+      width += 30;
+
+      /* Prepare the object name and determine its width.  Adjust width	*/
+      /* needed for object on the library page if necessary.		*/
+
       if (fval < fontcount) {
 	 stringpart *strptr;
-	 /* char *locobjname; (jdk) */
+	 TextExtents tmpext;
 
 	 NEW_LABEL(drawname, libpage);
 	 labeldefaults(*drawname, False, 0, 0);
@@ -902,18 +896,52 @@ void composelib(short mode)
          strptr->data.string = strdup(libobj->name);
          (*drawname)->justify = TOP | NOTBOTTOM | NOTLEFT;
 
-         if (width > 170)
-            (*drawname)->position.x = xpos + (width >> 1);
-         else
-            (*drawname)->position.x = xpos + 85;
+	 /* If the label is longer than the object width, then	*/
+	 /* adjust positions accordingly.  Note that as an ad-	*/
+	 /* hoc spacing rule, a padding of 30 is put between	*/
+	 /* objects; this padding is reduced to 5 		*/
+
+	 tmpext = ULength(*drawname, drawinst, 0, NULL);
+
+	 /* Ad-hoc spacing rule is 5 for labels */
+	 tmpext.width += 5;
+
+	 if (tmpext.width > width)
+	    width = tmpext.width;
+      }
+
+      /* Minimum allowed width is 200 */
+      if (width < 200) width = 200;
+
+      /* Determine the area needed on the page to draw the object */
+
+      nxpos = xpos + width;
+      if ((nxpos > targetwidth) && (xpos > 0)) {
+	 nxpos -= xpos; 
+	 xpos = 0;
+	 ypos -= nypos;
+	 nypos = 200;
+      }
+
+      if (height > (nypos - 50)) nypos = height + 50;
+
+      drawinst->position.x = xpos + (width >> 1) - xcenter;
+      drawinst->position.y = ypos - (height + lly);
+      if (height <= 170) drawinst->position.y -= ((170 - height) >> 1);
+      drawinst->color = DEFAULTCOLOR;
+
+      if (fval < fontcount) {
+         (*drawname)->position.x = xpos + (width >> 1);
 
          if (height > 170)
             (*drawname)->position.y = drawinst->position.y + lly - 10;
          else
             (*drawname)->position.y = ypos - 180;
+
       }
       xpos = nxpos;
    }
+   eventmode = savemode;
 
    /* Compute the bounding box of the library page */
    calcbbox(xobjs.libtop[mode]);
