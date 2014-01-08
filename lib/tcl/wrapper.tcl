@@ -1440,6 +1440,25 @@ proc xcircuit::promptmakesymbol {{name ""}} {
 
 #----------------------------------------------------------------------
 
+proc xcircuit::prompttargettech {{name ""}} {
+  global XCOps
+  
+  set XCOps(dialog) targettech
+  .dialog.bbar.apply configure -command \
+          {set selects [xcircuit::select]; \
+	  if {$selects > 0} { \
+	    technology objects $XCOps(technology) [.dialog.textent.txt get]}\
+	  } 
+  xcircuit::removedialogline textent2
+  .dialog.textent.title.field configure -text "Objects to move:"
+  .dialog.textent.txt delete 0 end
+  .dialog.textent.txt insert 0 $name
+  xcircuit::popupdialog
+  xcircuit::addtechlist .dialog "Target technology: "
+}
+
+#----------------------------------------------------------------------
+
 proc xcircuit::promptelementsize {} {
    global XCOps
    if {![catch {set cscale [xcircuit::element scale]}]} {
@@ -1547,6 +1566,20 @@ proc xcircuit::promptmakeobject {} {
       xcircuit::addtechlist .dialog "Technology: " {(user)} prefix
       xcircuit::addliblist .dialog "Place in: "
 
+   }
+}
+
+#----------------------------------------------------------------------
+
+proc xcircuit::promptreplaceobject {} {
+   global XCOps
+   if {[xcircuit::select] > 0} {
+      set XCOps(dialog) replaceobject
+      .dialog.bbar.apply configure -command \
+	  {xcircuit::element selected object [.dialog.textent.txt get]}
+      .dialog.textent.title.field configure -text "Name of replacement object"
+      .dialog.textent.txt delete 0 end
+      xcircuit::popupdialog
    }
 }
 
@@ -2333,6 +2366,9 @@ proc xcircuit::makemenus {window} {
 	"${window}.mainframe.toolbar.pu2 invoke"
    $m add command -label "Pop Hierarchy" -command {pop}
    $m add separator
+   $m add command -label "Change Technology" -command \
+	{xcircuit::prompttargettech [element selected object]}
+   $m add separator
    $m add command -label "Make User Object" -command \
 	"${window}.mainframe.toolbar.bmk invoke"
    $m add command -label "Make Arc" -command \
@@ -2343,6 +2379,7 @@ proc xcircuit::makemenus {window} {
 	"${window}.mainframe.toolbar.bs invoke"
    $m add command -label "Make Wire" -command \
 	"${window}.mainframe.toolbar.bw invoke"
+   $m add command -label "Replace" -command {xcircuit::promptreplaceobject}
    $m add command -label "Join" -command \
 	"${window}.mainframe.toolbar.bpz invoke"
    $m add command -label "Unjoin" -command \
@@ -2536,7 +2573,7 @@ proc xcircuit::makemenus {window} {
 	-variable XCWinOps(${window},showclipmasks) \
 	-onvalue show -offvalue hide -command \
 	{xcircuit::config clipmasks $XCWinOps($XCOps(focus),showclipmasks)}
-   $m add check -label "Show Library Namespaces" \
+   $m add check -label "Show Technology Namespaces" \
 	-variable XCWinOps(${window},namespaces) \
 	-onvalue true -offvalue false -command \
 	{xcircuit::config technologies $XCWinOps($XCOps(focus),namespaces)}
