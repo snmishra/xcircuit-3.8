@@ -8074,7 +8074,7 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
       case ObjectsIdx:
 
 	 if (objc > 3) {
-	    int numobjs, objnamelen;
+	    int numobjs, objnamelen, technamelen;
 	    Tcl_Obj *tobj;
 	    char *cptr;
 	    TechPtr otech;
@@ -8112,6 +8112,8 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 		AddNewTechnology(technology, NULL);
 
 	    nsptr = LookupTechnology(technology);
+	    technamelen = (usertech) ? 0 : strlen(technology);
+	
 
 	    /* Change the technology prefix of all the objects listed */
 
@@ -8125,21 +8127,21 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 		  cptr = strstr(libobj->name, "::");
 		  if (cptr == NULL) {
 		     objnamelen = strlen(libobj->name);
-		     memmove(libobj->name + strlen(technology) + 2,
+		     memmove(libobj->name + technamelen + 2,
 				libobj->name, (size_t)strlen(libobj->name));
 		  }
 		  else {
 		     otech = GetObjectTechnology(libobj);
 		     otech->flags |= LIBRARY_CHANGED;
 		     objnamelen = strlen(cptr + 2);
-		     memmove(libobj->name + strlen(technology) + 2,
+		     memmove(libobj->name + technamelen + 2,
 				cptr + 2, (size_t)strlen(cptr + 2));
 		  }
 
-		  strcpy(libobj->name, technology);
-		  *(libobj->name + strlen(technology)) = ':';
-		  *(libobj->name + strlen(technology) + 1) = ':';
-		  *(libobj->name + strlen(technology) + 2 + objnamelen) = '\0';
+		  if (!usertech) strcpy(libobj->name, technology);
+		  *(libobj->name + technamelen) = ':';
+		  *(libobj->name + technamelen + 1) = ':';
+		  *(libobj->name + technamelen + 2 + objnamelen) = '\0';
 	       }
 	    }
 	    else {
@@ -8148,21 +8150,21 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 		  cptr = strstr(libobj->name, "::");
 		  if (cptr == NULL) {
 		     objnamelen = strlen(libobj->name);
-		     memmove(libobj->name + strlen(technology) + 2,
+		     memmove(libobj->name + technamelen + 2,
 				libobj->name, (size_t)strlen(libobj->name));
 		  }
 		  else {
 		     otech = GetObjectTechnology(libobj);
 		     otech->flags |= LIBRARY_CHANGED;
 		     objnamelen = strlen(cptr + 2);
-		     memmove(libobj->name + strlen(technology) + 2,
+		     memmove(libobj->name + technamelen + 2,
 				cptr + 2, (size_t)strlen(cptr + 2));
 		  }
 
-		  strcpy(libobj->name, technology);
-		  *(libobj->name + strlen(technology)) = ':';
-		  *(libobj->name + strlen(technology) + 1) = ':';
-		  *(libobj->name + strlen(technology) + 2 + objnamelen) = '\0';
+		  if (!usertech) strcpy(libobj->name, technology);
+		  *(libobj->name + technamelen) = ':';
+		  *(libobj->name + technamelen + 1) = ':';
+		  *(libobj->name + technamelen + 2 + objnamelen) = '\0';
 	       }
 	    }
 	    if (nsptr != NULL) nsptr->flags |= LIBRARY_CHANGED;

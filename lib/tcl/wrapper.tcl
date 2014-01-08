@@ -1444,10 +1444,12 @@ proc xcircuit::prompttargettech {{name ""}} {
   global XCOps
   
   set XCOps(dialog) targettech
-  .dialog.bbar.apply configure -command \
-          {set selects [xcircuit::select]; \
+  .dialog.bbar.apply configure -command { \
+	  set selects [xcircuit::select]; \
 	  if {$selects > 0} { \
-	    technology objects $XCOps(technology) [.dialog.textent.txt get]}\
+	    if {[catch {set techname [.dialog.textent2.txt get]}]} {\
+		set techname $XCOps(technology)}; \
+	    technology objects $techname [.dialog.textent.txt get]}\
 	  } 
   xcircuit::removedialogline textent2
   .dialog.textent.title.field configure -text "Objects to move:"
@@ -1455,6 +1457,13 @@ proc xcircuit::prompttargettech {{name ""}} {
   .dialog.textent.txt insert 0 $name
   xcircuit::popupdialog
   xcircuit::addtechlist .dialog "Target technology: "
+
+  # Add an additional selection to the tech menu for adding a new
+  # technology namespace.  This is relevant only to "prompttargettech".
+
+  .dialog.techself.techselect.menu add \
+	command -label "Add New Tech" -command \
+	"xcircuit::makedialogline textent2 {New tech name:}"
 }
 
 #----------------------------------------------------------------------
