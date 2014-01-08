@@ -1253,28 +1253,6 @@ int ParseLibArguments(Tcl_Interp *interp, int objc,
 }
 
 /*----------------------------------------------------------------------*/
-/* Return a pointer to an object corresponding to the object name.	*/
-/* If no object is found corresponding to the name, then return NULL.	*/
-/*----------------------------------------------------------------------*/
-
-objectptr GetObjectFromName(char *objname)
-{
-   int i, j;
-   objectptr *libobj;
-
-   for (i = 0; i < xobjs.numlibs; i++) {
-      for (j = 0; j < xobjs.userlibs[i].number; j++) {
-	 libobj = xobjs.userlibs[i].library + j;
-	 if (!strcmp(objname, (*libobj)->name)) {
-	    return (*libobj);
-	    break;
-	 }
-      }
-   }
-   return NULL;
-}
-
-/*----------------------------------------------------------------------*/
 /* Schematic and symbol creation and association			*/
 /*----------------------------------------------------------------------*/
 
@@ -1318,7 +1296,7 @@ int xctcl_symschem(ClientData clientData, Tcl_Interp *interp,
 
 	       /* Name has to be that of a library object */
 
-	       otherobj = GetObjectFromName(Tcl_GetString(objv[2]));
+	       otherobj = NameToObject(Tcl_GetString(objv[2]), NULL, FALSE);
 	       if (otherobj == NULL) {
 	          Tcl_SetResult(interp, "Name is not a known object", NULL);
 		  return TCL_ERROR;
@@ -5734,7 +5712,7 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 	       // Change each element in turn to the corresponding object
 	       // taken from the command arguments
 	       for (i = 0; i < areawin->selects; i++) {
-		  pobj = GetObjectFromName(Tcl_GetString(objv[2 + i]));
+		  pobj = NameToObject(Tcl_GetString(objv[2 + i]), NULL, FALSE);
 	          if (pobj == NULL) {
 	             Tcl_SetResult(interp, "Name is not a known object", NULL);
 		     return TCL_ERROR;
@@ -5749,7 +5727,7 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 	       if (result != TCL_OK) return result;
 	       if (listlen == 1) {
 		  // Check if the indicated object exists
-		  pobj = GetObjectFromName(Tcl_GetString(objv[2]));
+		  pobj = NameToObject(Tcl_GetString(objv[2]), NULL, FALSE);
 	          if (pobj == NULL) {
 	             Tcl_SetResult(interp, "Name is not a known object", NULL);
 		     return TCL_ERROR;
@@ -5774,7 +5752,7 @@ int xctcl_instance(ClientData clientData, Tcl_Interp *interp,
 		     result = Tcl_ListObjIndex(interp, objv[2], i, &listPtr);
 		     if (result != TCL_OK) return result;
 
-		     pobj = GetObjectFromName(Tcl_GetString(listPtr));
+		     pobj = NameToObject(Tcl_GetString(listPtr), NULL, FALSE);
 	             if (pobj == NULL) {
 	                Tcl_SetResult(interp, "Name is not a known object", NULL);
 		        return TCL_ERROR;
@@ -8006,15 +7984,24 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 	 nsptr = LookupTechnology(technology);
 	 if (nsptr == NULL) {
 
-	    /* If nsptr is NULL, then the technology should be "none" or "user" */
+	    /* If the command is "objects" and has one or more		*/
+	    /* additional arguments, then a NULL nsptr is okay (new	*/
+	    /* technology will be created and added to the list).	*/
 
-	    if ((strstr(technology, "none") == NULL) &&
+	    if (idx != ObjectsIdx || objc <= 3) {
+
+	       /* If nsptr is NULL, then the technology should be	*/
+	       /* "none" or "user"					*/
+
+	       if ((strstr(technology, "none") == NULL) &&
 			(strstr(technology, "user") == NULL)) {
-	       Tcl_SetResult(interp, "Error:  Unknown technology name!", NULL);
-	       return TCL_ERROR;
+	          Tcl_SetResult(interp, "Error:  Unknown technology name!", NULL);
+	          return TCL_ERROR;
+	       }
+	       usertech = TRUE;
 	    }
-	    usertech = TRUE;
 	 }
+
 	 /* And if the user technology has been saved to a file, the technology	*/
 	 /* will have a NULL string.  Also check for technology name "(user)",	*/
 	 /* although that is not supposed to happen.				*/
@@ -8085,7 +8072,105 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 	 break;
 
       case ObjectsIdx:
+
+	 if (objc > 3) {
+	    int numobjs, objnamelen;
+	    Tcl_Obj *tobj;
+	    char *cptr;
+	    TechPtr otech;
+
+	    /* Check that 4th argument is a list of objects or that	*/
+	    /* 4th and higher arguments are all names of objects, and	*/
+	    /* that these objects are valid existing objects.		*/
+
+	    if (objc == 4) {
+	       result = Tcl_ListObjLength(interp, objv[3], &numobjs);
+	       if (result != TCL_OK) return result;
+	       for (j = 0; j < numobjs; j++) {
+		  result = Tcl_ListObjIndex(interp, objv[3], j, &tobj);
+	          if (result != TCL_OK) return result;
+		  libobj = NameToObject(Tcl_GetString(tobj), NULL, FALSE);
+		  if (libobj == NULL) {
+		     Tcl_SetResult(interp, "No such object name", NULL);
+		     return TCL_ERROR;	
+		  }
+	       }
+	    }
+	    else {
+	       for (j = 0; j < objc - 4; j++) {
+		  libobj = NameToObject(Tcl_GetString(objv[3 + j]), NULL, FALSE);
+		  if (libobj == NULL) {
+		     Tcl_SetResult(interp, "No such object name", NULL);
+		     return TCL_ERROR;	
+		  }
+	       }
+	    }
+
+	    /* Create a new technology if needed */
+	    technology = Tcl_GetString(objv[2]);
+	    if ((nsptr == NULL) && !usertech)
+		AddNewTechnology(technology, NULL);
+
+	    nsptr = LookupTechnology(technology);
+
+	    /* Change the technology prefix of all the objects listed */
+
+	    if (objc == 4) {
+	       result = Tcl_ListObjLength(interp, objv[3], &numobjs);
+	       if (result != TCL_OK) return result;
+	       for (j = 0; j < numobjs; j++) {
+		  result = Tcl_ListObjIndex(interp, objv[3], j, &tobj);
+	          if (result != TCL_OK) return result;
+		  libobj = NameToObject(Tcl_GetString(tobj), NULL, FALSE);
+		  cptr = strstr(libobj->name, "::");
+		  if (cptr == NULL) {
+		     objnamelen = strlen(libobj->name);
+		     memmove(libobj->name + strlen(technology) + 2,
+				libobj->name, (size_t)strlen(libobj->name));
+		  }
+		  else {
+		     otech = GetObjectTechnology(libobj);
+		     otech->flags |= LIBRARY_CHANGED;
+		     objnamelen = strlen(cptr + 2);
+		     memmove(libobj->name + strlen(technology) + 2,
+				cptr + 2, (size_t)strlen(cptr + 2));
+		  }
+
+		  strcpy(libobj->name, technology);
+		  *(libobj->name + strlen(technology)) = ':';
+		  *(libobj->name + strlen(technology) + 1) = ':';
+		  *(libobj->name + strlen(technology) + 2 + objnamelen) = '\0';
+	       }
+	    }
+	    else {
+	       for (j = 0; j < objc - 4; j++) {
+		  libobj = NameToObject(Tcl_GetString(objv[3 + j]), NULL, FALSE);
+		  cptr = strstr(libobj->name, "::");
+		  if (cptr == NULL) {
+		     objnamelen = strlen(libobj->name);
+		     memmove(libobj->name + strlen(technology) + 2,
+				libobj->name, (size_t)strlen(libobj->name));
+		  }
+		  else {
+		     otech = GetObjectTechnology(libobj);
+		     otech->flags |= LIBRARY_CHANGED;
+		     objnamelen = strlen(cptr + 2);
+		     memmove(libobj->name + strlen(technology) + 2,
+				cptr + 2, (size_t)strlen(cptr + 2));
+		  }
+
+		  strcpy(libobj->name, technology);
+		  *(libobj->name + strlen(technology)) = ':';
+		  *(libobj->name + strlen(technology) + 1) = ':';
+		  *(libobj->name + strlen(technology) + 2 + objnamelen) = '\0';
+	       }
+	    }
+	    if (nsptr != NULL) nsptr->flags |= LIBRARY_CHANGED;
+	    break;
+	 }
+
 	 /* List all objects having this technology */
+
 	 olist = Tcl_NewListObj(0, NULL);
 	 for (ilib = 0; ilib < xobjs.numlibs; ilib++) {
             for (j = 0; j < xobjs.userlibs[ilib].number; j++) {
