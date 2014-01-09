@@ -1440,6 +1440,34 @@ proc xcircuit::promptmakesymbol {{name ""}} {
 
 #----------------------------------------------------------------------
 
+proc xcircuit::prompttargettech {{name ""}} {
+  global XCOps
+  
+  set XCOps(dialog) targettech
+  .dialog.bbar.apply configure -command { \
+	  set selects [xcircuit::select]; \
+	  if {$selects > 0} { \
+	    if {[catch {set techname [.dialog.textent2.txt get]}]} {\
+		set techname $XCOps(technology)}; \
+	    technology objects $techname [.dialog.textent.txt get]}\
+	  } 
+  xcircuit::removedialogline textent2
+  .dialog.textent.title.field configure -text "Objects to move:"
+  .dialog.textent.txt delete 0 end
+  .dialog.textent.txt insert 0 $name
+  xcircuit::popupdialog
+  xcircuit::addtechlist .dialog "Target technology: "
+
+  # Add an additional selection to the tech menu for adding a new
+  # technology namespace.  This is relevant only to "prompttargettech".
+
+  .dialog.techself.techselect.menu add \
+	command -label "Add New Tech" -command \
+	"xcircuit::makedialogline textent2 {New tech name:}"
+}
+
+#----------------------------------------------------------------------
+
 proc xcircuit::promptelementsize {} {
    global XCOps
    if {![catch {set cscale [xcircuit::element scale]}]} {
@@ -2346,6 +2374,9 @@ proc xcircuit::makemenus {window} {
    $m add command -label "Push Selected" -command \
 	"${window}.mainframe.toolbar.pu2 invoke"
    $m add command -label "Pop Hierarchy" -command {pop}
+   $m add separator
+   $m add command -label "Change Technology" -command \
+	{xcircuit::prompttargettech [element selected object]}
    $m add separator
    $m add command -label "Make User Object" -command \
 	"${window}.mainframe.toolbar.bmk invoke"

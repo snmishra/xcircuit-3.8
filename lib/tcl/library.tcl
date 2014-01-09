@@ -49,15 +49,34 @@ proc xcircuit::promptnewlibrary {} {
 
 #----------------------------------------
 
+proc xcircuit::prompttechtarget {} {
+  .dialog.bbar.okay configure -command \
+	{foreach i [.libmgr.object.list curselection] \
+	{technology objects [.dialog.textent.txt get] \
+	[.libmgr.object.list get $i]}; \
+        updatelibmanager; wm withdraw .dialog}
+  .dialog.textent.title.field configure -text "Enter name of target technology:"
+  .dialog.textent.txt delete 0 end
+  wm deiconify .dialog
+  focus .dialog.textent.txt
+}
+
+#----------------------------------------
+
 proc makelibmanager {} {
    global XCOps
    global XCIRCUIT_LIB_DIR
 
    toplevel .libmgr
+
+   wm protocol .libmgr WM_DELETE_WINDOW {xcircuit::lowermanager}
+
    label .libmgr.title1 -text "Source Technology File" -foreground "blue"
    label .libmgr.title2 -text "Target Library Page" -foreground "blue"
    label .libmgr.title3 -text "Search Directories" -foreground "blue"
-   label .libmgr.title4 -text "Objects" -foreground "blue"
+   frame .libmgr.tblock
+
+   label .libmgr.tblock.title -text "Objects" -foreground "blue"
 
    menubutton .libmgr.srclib -text "" -menu .libmgr.srclib.menu -relief groove
    menubutton .libmgr.tgtlib -text "" -menu .libmgr.tgtlib.menu -relief groove
@@ -96,7 +115,10 @@ proc makelibmanager {} {
    button .libmgr.buttons.all -text "Load All" \
 	-command {library $XCOps(tgtlib) load $XCOps(srclib); \
 	updateobjects $XCOps(srclib); refresh}
-   checkbutton .libmgr.buttons.check -text "Show Loaded" \
+   button .libmgr.buttons.move -text "Move Selected" \
+	-command {xcircuit::prompttechtarget}
+
+   checkbutton .libmgr.tblock.check -text "Show Loaded" \
 	-variable XCOps(showloaded) -onvalue 1 -offvalue 0 \
 	-command {updateobjects $XCOps(srclib)}
 
@@ -106,12 +128,16 @@ proc makelibmanager {} {
    pack .libmgr.buttons.new -side left
    pack .libmgr.buttons.done -side left
    pack .libmgr.buttons.all -side left
-   pack .libmgr.buttons.check -side left
+   # pack .libmgr.buttons.move -side left
 
    grid .libmgr.title1 -row 0 -column 0 -sticky news
    grid .libmgr.title2 -row 0 -column 1 -sticky news
    grid .libmgr.title3 -row 2 -column 0 -sticky news
-   grid .libmgr.title4 -row 2 -column 1 -sticky news
+   grid .libmgr.tblock -row 2 -column 1 -sticky news
+
+   pack .libmgr.tblock.title  -side left
+   pack .libmgr.tblock.check  -side left
+
    grid .libmgr.srclib -row 1 -column 0 -sticky news -padx 4
    grid .libmgr.tgtlib -row 1 -column 1 -sticky news -padx 4
    grid .libmgr.object -row 3 -column 1 -sticky news
@@ -164,8 +190,11 @@ proc updateobjects {techfile} {
 
    set objlist [lsort -dictionary $objlist]
    foreach objname $objlist {
-      if {$XCOps(showloaded) == 1 || [catch {object handle $objname}]} {
+      if {[catch {object handle $objname}]} {
 	 .libmgr.object.list insert end $objname
+      } elseif {$XCOps(showloaded) == 1} {
+	 .libmgr.object.list insert end $objname
+	 .libmgr.object.list itemconfigure end -fg forestgreen
       }
    }
 }
