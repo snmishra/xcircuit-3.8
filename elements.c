@@ -685,8 +685,8 @@ Boolean labeltext(int keypressed, char *clientdata)
 	    newtech = GetObjectTechnology(libobj);
 
 	    if (oldtech != newtech) {
-	       if (oldtech) oldtech->flags |= (u_char)LIBRARY_CHANGED;
-	       if (newtech) newtech->flags |= (u_char)LIBRARY_CHANGED;
+	       if (oldtech) oldtech->flags |= (u_char)TECH_CHANGED;
+	       if (newtech) newtech->flags |= (u_char)TECH_CHANGED;
 	    }
 	 }
 

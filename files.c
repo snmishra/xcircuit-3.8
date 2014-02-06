@@ -1351,7 +1351,7 @@ void importfromlibrary(short mode, char *libname, char *objname)
    Boolean dependencies = False;
    TechPtr nsptr = NULL;
    
-   ps = libopen(libname, mode, inname, 0);
+   ps = libopen(libname, mode, inname, 149);
    if (ps == NULL) {
       Fprintf(stderr, "Cannot open library %s for import.\n", libname);
       return;
@@ -1391,6 +1391,7 @@ void importfromlibrary(short mode, char *libname, char *objname)
 		  if (!strncmp(tptr, ".lps", 4))
 		     *tptr = '\0';
 	       nsptr = AddNewTechnology(techname, inname);
+	       if (nsptr) nsptr->flags |= TECH_IMPORTED;
 	    }
 	 }
          else if (!strncmp(tptr, "Depend", 6)) {
@@ -1474,11 +1475,11 @@ void TechReplaceSave()
 
    for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next)
    {
-      if (nsp->flags & LIBRARY_REPLACE)
-	 nsp->flags |= LIBRARY_REPLACE_TEMP;
+      if (nsp->flags & TECH_REPLACE)
+	 nsp->flags |= TECH_REPLACE_TEMP;
       else
-         nsp->flags &= ~LIBRARY_REPLACE_TEMP;
-      nsp->flags &= ~LIBRARY_REPLACE;
+         nsp->flags &= ~TECH_REPLACE_TEMP;
+      nsp->flags &= ~TECH_REPLACE;
    }
 }
 
@@ -1492,10 +1493,10 @@ void TechReplaceRestore()
 
    for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next)
    {
-      if (nsp->flags & LIBRARY_REPLACE_TEMP)
-	 nsp->flags |= LIBRARY_REPLACE;
+      if (nsp->flags & TECH_REPLACE_TEMP)
+	 nsp->flags |= TECH_REPLACE;
       else
-         nsp->flags &= ~LIBRARY_REPLACE;
+         nsp->flags &= ~TECH_REPLACE;
    }
 }
 
@@ -1508,7 +1509,7 @@ void TechReplaceAll()
    TechPtr nsp;
 
    for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next)
-      nsp->flags |= LIBRARY_REPLACE;
+      nsp->flags |= TECH_REPLACE;
 }
 
 /*------------------------------------------------------*/
@@ -1520,7 +1521,7 @@ void TechReplaceNone()
    TechPtr nsp;
 
    for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next)
-      nsp->flags &= ~LIBRARY_REPLACE;
+      nsp->flags &= ~TECH_REPLACE;
 }
 
 
@@ -1811,7 +1812,7 @@ Boolean loadlibrary(short mode)
    if ((mode != FONTLIB) && (nsptr != NULL)) {
       ps = fopen(inname, "a");
       if (ps == NULL)
-         nsptr->flags |= LIBRARY_READONLY;
+         nsptr->flags |= TECH_READONLY;
       else
          fclose(ps);
    }
@@ -3382,7 +3383,7 @@ Boolean library_object_unique(short mode, objectptr newobject, objlistptr redef)
 
 	  TechPtr nsptr = GetObjectTechnology(newobject);
 
-	  if (nsptr && (nsptr->flags & LIBRARY_REPLACE)) {
+	  if (nsptr && (nsptr->flags & TECH_REPLACE)) {
 	     reset(newobject, DESTROY);
 	     (*libobjects)--;
 	     is_unique = False;
@@ -4963,7 +4964,7 @@ void savelibpopup(xcWidget button, char *technology, caddr_t nulldata)
    nsptr = LookupTechnology(technology);
 
    if (nsptr != NULL) {
-      if ((nsptr->flags & LIBRARY_READONLY) != 0) {
+      if ((nsptr->flags & TECH_READONLY) != 0) {
          Wprintf("Library technology \"%s\" is read-only.", technology);
          return;
       }
@@ -5018,7 +5019,7 @@ void savetechnology(char *technology, char *outname)
       nsptr = LookupTechnology(technology);
 
    if (nsptr != NULL) {
-      if ((nsptr->flags & LIBRARY_READONLY) != 0) {
+      if ((nsptr->flags & TECH_READONLY) != 0) {
          Wprintf("Library technology \"%s\" is read-only.", technology);
          return;
       }
@@ -5175,7 +5176,7 @@ void savetechnology(char *technology, char *outname)
    }
 
    setassaved(wroteobjs, written);
-   if (nsptr) nsptr->flags &= (~LIBRARY_CHANGED);
+   if (nsptr) nsptr->flags &= (~TECH_CHANGED);
    xobjs.new_changes = countchanges(NULL);
 
    /* and the postlog */

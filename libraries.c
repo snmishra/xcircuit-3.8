@@ -1263,7 +1263,7 @@ void tech_set_changes(TechPtr refns)
          if (getchanges(thisobj) > 0) {
             ns = GetObjectTechnology(thisobj);
 	    if ((refns == NULL) || (refns == ns)) 
-	       ns->flags |= LIBRARY_CHANGED;
+	       ns->flags |= TECH_CHANGED;
 	 }
       }
    }
@@ -1275,7 +1275,7 @@ void tech_set_changes(TechPtr refns)
 
 void tech_mark_changed(TechPtr ns)
 {
-   if (ns != NULL) ns->flags |= LIBRARY_CHANGED;
+   if (ns != NULL) ns->flags |= TECH_CHANGED;
 }
 
 /*------------------------------------------------------*/

@@ -331,7 +331,7 @@ u_short countchanges(char **promptstr)
 
    for (ns = xobjs.technologies; ns != NULL; ns = ns->next) {
       tech_set_changes(ns);
-      if ((ns->flags & LIBRARY_CHANGED) != 0) {
+      if ((ns->flags & TECH_CHANGED) != 0) {
 	 changes++;
 	 if (promptstr != NULL) {
 	    fname = ns->filename;
