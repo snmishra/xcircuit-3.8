@@ -4995,8 +4995,8 @@ void savelibrary(xcWidget w, char *technology)
 void savetechnology(char *technology, char *outname)
 {
    FILE *ps;
-   char *outptr, *validname, outfile[150]; /* *libname, (jdk) */
-   objectptr *wroteobjs, libobjptr, *optr, depobj; /* *libptr, (jdk) */
+   char *outptr, *validname, outfile[150];
+   objectptr *wroteobjs, libobjptr, *optr, depobj;
    genericptr *gptr;
    liblistptr spec;
    short written;
@@ -5007,6 +5007,7 @@ void savetechnology(char *technology, char *outname)
    int i, j, ilib;
    TechPtr nsptr;
    char *loctechnology;
+   Boolean merge = FALSE;
 
    // Don't use the string "(user)" as a technology name;  this is just
    // a GUI placeholder for a null string ("").  This shouldn't happen,
@@ -5020,8 +5021,12 @@ void savetechnology(char *technology, char *outname)
 
    if (nsptr != NULL) {
       if ((nsptr->flags & TECH_READONLY) != 0) {
-         Wprintf("Library technology \"%s\" is read-only.", technology);
+         Wprintf("Technology file \"%s\" is read-only.", technology);
          return;
+      }
+      if ((nsptr->flags & TECH_IMPORTED) != 0) {
+         Wprintf("Merging objects into Technology file \"%s\".", technology);
+	 merge = TRUE;
       }
    }
 
