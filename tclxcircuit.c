@@ -8261,9 +8261,7 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 	 }
  	 else if ((nsptr != NULL) && (objc == 4)) {
 	    /* Technology being saved under a different filename. */
-	    if (nsptr->filename != NULL) free(nsptr->filename);
-	    nsptr->filename = strdup(Tcl_GetString(objv[3]));
-	    filename = nsptr->filename;
+	    filename = Tcl_GetString(objv[3]);
 
 	    /* Re-check read-only status of the file */
 	    nsptr->flags &= ~(TECH_READONLY);

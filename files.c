@@ -1391,7 +1391,17 @@ void importfromlibrary(short mode, char *libname, char *objname)
 		  if (!strncmp(tptr, ".lps", 4))
 		     *tptr = '\0';
 	       nsptr = AddNewTechnology(techname, inname);
-	       if (nsptr) nsptr->flags |= TECH_IMPORTED;
+	       if (nsptr) {
+		  // Set the IMPORTED flag, to help prevent overwriting
+		  // the techfile with a truncated version of it, unless
+		  // the filename of the techfile has been changed, in
+		  // which case the technology should be considered to
+		  // stand on its own, and is not considered a partially
+		  // complete imported version of the original techfile.
+
+		  if (!strcmp(inname, nsptr->filename))
+		     nsptr->flags |= TECH_IMPORTED;
+	       }
 	    }
 	 }
          else if (!strncmp(tptr, "Depend", 6)) {
@@ -1763,6 +1773,13 @@ Boolean loadlibrary(short mode)
 	       if ((nptr != NULL) && !strcmp(nptr, ".lps")) *nptr = '\0';
 
 	       nsptr = AddNewTechnology(cptr, inname);
+
+	       if (nsptr) {
+		  // If anything was previously imported from this file
+		  // using importfromlibrary(), then the IMPORTED flag
+		  // will be set and needs to be cleared.
+	          nsptr->flags &= ~TECH_IMPORTED;
+	       }
 	    }
          }
 
@@ -5007,7 +5024,6 @@ void savetechnology(char *technology, char *outname)
    int i, j, ilib;
    TechPtr nsptr;
    char *loctechnology;
-   Boolean merge = FALSE;
 
    // Don't use the string "(user)" as a technology name;  this is just
    // a GUI placeholder for a null string ("").  This shouldn't happen,
@@ -5019,17 +5035,6 @@ void savetechnology(char *technology, char *outname)
    else
       nsptr = LookupTechnology(technology);
 
-   if (nsptr != NULL) {
-      if ((nsptr->flags & TECH_READONLY) != 0) {
-         Wprintf("Technology file \"%s\" is read-only.", technology);
-         return;
-      }
-      if ((nsptr->flags & TECH_IMPORTED) != 0) {
-         Wprintf("Merging objects into Technology file \"%s\".", technology);
-	 merge = TRUE;
-      }
-   }
-
    if ((outptr = strrchr(outname, '/')) == NULL)
       outptr = outname;
    else
@@ -5040,10 +5045,44 @@ void savetechnology(char *technology, char *outname)
    xc_tilde_expand(outfile, 149);
    while(xc_variable_expand(outfile, 149));
 
+   if (nsptr != NULL) {
+      // To be pedantic, we should probably check that the inodes of the
+      // files are different, to be sure we are avoiding an unintentional
+      // over-write.
+
+      if (!strcmp(outfile, nsptr->filename)) {
+
+	 if ((nsptr->flags & TECH_READONLY) != 0) {
+	    Wprintf("Technology file \"%s\" is read-only.", technology);
+	    return;
+	 }
+
+	 if ((nsptr->flags & TECH_IMPORTED) != 0) {
+	    Wprintf("Attempt to write a truncated technology file!");
+	    return;
+	 }
+      }
+   }
+
    ps = fopen(outfile, "wb");
    if (ps == NULL) {
       Wprintf("Can't open PS file.");
+      if (nsptr && (!strcmp(nsptr->filename, outfile))) {
+	 Wprintf("Marking technology \"%s\" as read-only.", technology);
+	 nsptr->flags |= TECH_READONLY;
+      }
       return;
+   }
+
+   /* Did the technology name change?  If so, register the new name.	*/
+   /* Clear any "IMPORTED" or "READONLY" flags.				*/
+
+   if (nsptr && strcmp(outfile, nsptr->filename)) {
+      Wprintf("Technology filename changed from \"%s\" to \"%s\".",
+		nsptr->filename, outfile);
+      free(nsptr->filename);
+      nsptr->filename = strdup(outfile);
+      nsptr->flags &= ~(TECH_READONLY | TECH_IMPORTED);
    }
 
    fprintf(ps, "%%! PostScript set of library objects for XCircuit\n");
