@@ -4519,7 +4519,7 @@ char *checkvalidname(char *teststring, objectptr newobj)
    int i, j;
    short dupl;  /* flag a duplicate string */
    objectptr *libobj;
-   char *sptr, *pptr;
+   char *sptr, *pptr, *cptr;
    aliasptr aref;
    slistptr sref;
 
@@ -4538,23 +4538,22 @@ char *checkvalidname(char *teststring, objectptr newobj)
 	       if (*libobj == newobj) continue;
                if (!strcmp(pptr, (*libobj)->name)) { 
 
-		  /* Instead of the old method of prepending an		*/
-		  /* underscore to the name, we now change the		*/
-		  /* technology, not the name, to avoid a conflict.  	*/
-		  /* If there's no technology, then we add one called	*/
-		  /* "unref".  Otherwise, the technology gets the	*/
-		  /* leading underscore.				*/
+		  /* Prepend an underscore to the object name.	If the	*/
+		  /* object has no technology, create a null technology	*/
+		  /* name.  Otherwise, the technology remains the same	*/
+		  /* but the object name gets the prepended underscore.	*/
 
-		  if (strstr(pptr, "::") == NULL) {
-                     pptr = (char *)malloc(strlen((*libobj)->name) + 8);
-		     sprintf(pptr, "unref::%s", (*libobj)->name);
+		  if ((cptr = strstr(pptr, "::")) == NULL) {
+                     pptr = (char *)malloc(strlen((*libobj)->name) + 3);
+		     sprintf(pptr, "::_%s", (*libobj)->name);
 		  }
 		  else {
 		     if (pptr == sptr)
                         pptr = (char *)malloc(strlen((*libobj)->name) + 2);
 		     else
                         pptr = (char *)realloc(pptr, strlen((*libobj)->name) + 2);
-	             sprintf(pptr, "_%s", (*libobj)->name);
+	             sprintf(pptr, "%s", (*libobj)->name);
+	             sprintf(cptr + 2, "_%s", (*libobj)->name + (cptr - pptr + 2));
 		  }
 	          dupl = 1;
 	       }
