@@ -1129,17 +1129,20 @@ proc xcircuit::updatedialog {} {
 }
 
 proc xcircuit::makedialogline {dframe textline} {
-   frame .dialog.${dframe} -bg beige
-   pack .dialog.${dframe} -side top -padx 20 -pady 7 -fill x
+   if {[catch {frame .dialog.${dframe} -bg beige}]} {
+      .dialog.${dframe}.title.field configure -text ${textline}
+   } else {
+      pack .dialog.${dframe} -side top -padx 20 -pady 7 -fill x
 
-   frame .dialog.${dframe}.title -bg beige
-   entry .dialog.${dframe}.txt -bg white -relief sunken -width 50
+      frame .dialog.${dframe}.title -bg beige
+      entry .dialog.${dframe}.txt -bg white -relief sunken -width 50
 
-   pack .dialog.${dframe}.title -side top -fill x
-   pack .dialog.${dframe}.txt -side bottom -fill x -expand true
+      pack .dialog.${dframe}.title -side top -fill x
+      pack .dialog.${dframe}.txt -side bottom -fill x -expand true
 
-   label .dialog.${dframe}.title.field -text ${textline} -bg beige
-   pack .dialog.${dframe}.title.field -side left
+      label .dialog.${dframe}.title.field -text ${textline} -bg beige
+      pack .dialog.${dframe}.title.field -side left
+   }
 }
 
 proc xcircuit::removedialogline {dframe} {
