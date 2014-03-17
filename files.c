@@ -6195,7 +6195,9 @@ short printparams(FILE *ps, objinstptr sinst, short stcount)
 
          switch (ops->type) {
 	    case XC_STRING:
+	       fputs("(", ps);
 	       writelabelsegs(ps, &loccount, ops->parameter.string);
+	       fputs(") ", ps);
 	       break;
 	    case XC_EXPR:
 	       ps_expr = evaluate_expr(sinst->thisobject, ops, sinst);
