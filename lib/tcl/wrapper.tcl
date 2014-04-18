@@ -973,7 +973,7 @@ button .output.bbar.cancel -text Cancel -bg beige -command {wm withdraw .output}
 set XCOps(orient) 0
 set XCOps(pstype) eps
 
-set m [menu .output.textent.buto.orientmenu -tearoff 0]
+set m [menu .output.textent.buto.orientmenu -tearoff 1]
 $m add radio -label "Portrait" -variable XCOps(orient) -value 0 -command \
 	{.output.textent.buto configure -text Portrait ; \
 	xcircuit::page orientation 0}
@@ -981,13 +981,13 @@ $m add radio -label "Landscape" -variable XCOps(orient) -value 90 -command \
 	{.output.textent.buto configure -text Landscape ; \
 	xcircuit::page orientation 90}
 
-set m [menu .output.textent.butp.psmenu -tearoff 0]
+set m [menu .output.textent.butp.psmenu -tearoff 1]
 $m add radio -label "Embedded (EPS)" -variable XCOps(pstype) -value eps -command \
 	{xcircuit::setpstype eps}
 $m add radio -label "Full Page" -variable XCOps(pstype) -value full -command \
 	{xcircuit::setpstype full}
 
-menu .output.textent.butl.linksmenu -tearoff 0
+menu .output.textent.butl.linksmenu -tearoff 1
 xcircuit::setlinksmenu
 
 pack .output.bbar.okay -side left -ipadx 10
@@ -2298,7 +2298,7 @@ image create photo img_tp -file ${XCIRCUIT_LIB_DIR}/pixmaps/tp.gif
 proc xcircuit::makemenus {window} {
    global XCOps
 
-   set m [menu ${window}.menubar.filebutton.filemenu -tearoff 0]
+   set m [menu ${window}.menubar.filebutton.filemenu -tearoff 1]
    $m add command -label "New Window" -command {xcircuit::forkwindow}
    $m add command -label "Close Window" -command \
 	"xcircuit::closewindow ${window}.mainframe.mainarea.drawing"
@@ -2334,7 +2334,7 @@ proc xcircuit::makemenus {window} {
 
    # Sub-menu for Import functions
 
-   set m2 [menu $m.importmenu -tearoff 0]
+   set m2 [menu $m.importmenu -tearoff 1]
    $m2 add command -label "Import XCircuit File" -command {xcircuit::promptimportfile}
    $m2 add command -label "Import background PS" -command \
 	{xcircuit::promptimportbackground}
@@ -2356,10 +2356,10 @@ proc xcircuit::makemenus {window} {
 
    # Sub-menu for Export functions
 
-   set m2 [menu $m.exportmenu -tearoff 0]
+   set m2 [menu $m.exportmenu -tearoff 1]
    $m2 add command -label "Export SVG" -command {svg -fullscale}
 
-   set m [menu ${window}.menubar.editbutton.editmenu -tearoff 0]
+   set m [menu ${window}.menubar.editbutton.editmenu -tearoff 1]
    $m add command -label "Undo" -command {undo}
    $m add command -label "Redo" -command {redo}
    $m add separator
@@ -2398,7 +2398,7 @@ proc xcircuit::makemenus {window} {
 	"${window}.mainframe.toolbar.buj invoke"
    $m add command -label "Raise/Lower" -command {element exchange}
 
-   set m2 [menu $m.rotmenu -tearoff 0]
+   set m2 [menu $m.rotmenu -tearoff 1]
    $m2 add command -label "Flip Horizontal" -command \
 	"${window}.mainframe.toolbar.bfx invoke"
    $m2 add command -label "Flip Vertical" -command \
@@ -2444,7 +2444,7 @@ proc xcircuit::makemenus {window} {
 	{set XCWinOps($XCOps(focus),rotateamount) 1; \
 	$XCOps(focus).mainframe.toolbar.bccw invoke}
 
-   set m2 [menu $m.selmenu -tearoff 0]
+   set m2 [menu $m.selmenu -tearoff 1]
    $m2 add command -label "Disable selection" -command {element select hide}
    $m2 add command -label "Remove all disabled" -command {element select allow}
    $m2 add separator
@@ -2470,7 +2470,7 @@ proc xcircuit::makemenus {window} {
 	-onvalue true -offvalue false -command \
 	{xcircuit::config filter graphic $XCWinOps($XCOps(focus),sel_graphic)}
 
-   set m [menu ${window}.menubar.textbutton.textmenu -tearoff 0]
+   set m [menu ${window}.menubar.textbutton.textmenu -tearoff 1]
    $m add command -label "Text Size" -command {xcircuit::prompttextsize}
    $m add cascade -label "Font" -menu $m.fontmenu
    $m add cascade -label "Style" -menu $m.stylemenu
@@ -2495,11 +2495,11 @@ proc xcircuit::makemenus {window} {
 	XCWinOps($XCOps(focus),labelimage) img_t; \
 	$XCOps(focus).mainframe.toolbar.bt invoke}
 
-   set m2 [menu $m.fontmenu -tearoff 0]
+   set m2 [menu $m.fontmenu -tearoff 1]
    $m2 add command -label "Add New Font" -command {xcircuit::promptnewfont}
    $m2 add separator
 
-   set m2 [menu $m.stylemenu -tearoff 0]
+   set m2 [menu $m.stylemenu -tearoff 1]
    $m2 add radio -label "Normal" -variable XCWinOps(${window},fontstyle) \
 	-value normal -command "xcircuit::label style normal"
    $m2 add radio -label "Bold" -variable XCWinOps(${window},fontstyle) \
@@ -2523,13 +2523,13 @@ proc xcircuit::makemenus {window} {
    $m2 add radio -label "No Line" -variable XCWinOps(${window},fontlining) \
 	-value normal -command "xcircuit::label insert noline"
 
-   set m2 [menu $m.encodingmenu -tearoff 0]
+   set m2 [menu $m.encodingmenu -tearoff 1]
    $m2 add radio -label "Standard" -variable XCWinOps(${window},fontencoding) \
 	-value Standard -command "xcircuit::label encoding Standard"
    $m2 add radio -label "ISOLatin1" -variable XCWinOps(${window},fontencoding) \
 	-value ISOLatin1 -command "xcircuit::label encoding ISOLatin1"
 
-   set m2 [menu $m.insertmenu -tearoff 0]
+   set m2 [menu $m.insertmenu -tearoff 1]
    $m2 add command -label "Tab stop" -command "xcircuit::label insert stop"
    $m2 add command -label "Tab forward" -command "xcircuit::label insert forward"
    $m2 add command -label "Tab backward" -command "xcircuit::label insert backward"
@@ -2543,7 +2543,7 @@ proc xcircuit::makemenus {window} {
    $m2 add command -label "Character" -command "xcircuit::label insert special"
    $m2 add command -label "Parameter" -command "xcircuit::prompteditparams"
 
-   set m2 [menu $m.justifymenu -tearoff 0]
+   set m2 [menu $m.justifymenu -tearoff 1]
    $m2 add radio -label "Left Justified" -variable XCWinOps(${window},jhoriz) \
 	-value left -command "xcircuit::label justify left"
    $m2 add radio -label "Center Justified" -variable XCWinOps(${window},jhoriz) \
@@ -2563,7 +2563,7 @@ proc xcircuit::makemenus {window} {
 	-onvalue true -offvalue false -command {xcircuit::label flipinvariant \
 	$XCWinOps($XCOps(focus),flipinvariant)}
 
-   set m [menu ${window}.menubar.optionsbutton.optionsmenu -tearoff 0]
+   set m [menu ${window}.menubar.optionsbutton.optionsmenu -tearoff 1]
    $m add check -label "Alt Colors" -variable XCWinOps(${window},colorscheme) \
 	-onvalue inverse -offvalue normal -command {xcircuit::config \
 	colorscheme $XCWinOps($XCOps(focus),colorscheme)}
@@ -2600,7 +2600,7 @@ proc xcircuit::makemenus {window} {
    $m add separator
    $m add command -label "Help!" -command {xcircuit::helpwindow}
 
-   set m2 [menu $m.gridmenu -tearoff 0]
+   set m2 [menu $m.gridmenu -tearoff 1]
    $m2 add check -label "Grid" -variable XCWinOps(${window},showgrid) \
 	-onvalue true -offvalue false \
 	-command {xcircuit::config grid $XCWinOps($XCOps(focus),showgrid); refresh}
@@ -2610,7 +2610,7 @@ proc xcircuit::makemenus {window} {
    $m2 add command -label "Grid Spacing" -command {xcircuit::promptgridspace}
    $m2 add cascade -label "Grid type/display" -menu $m2.gridsubmenu
 
-   set m3 [menu $m2.gridsubmenu -tearoff 0]
+   set m3 [menu $m2.gridsubmenu -tearoff 1]
    $m3 add radio -label "Decimal Inches" -variable XCWinOps(${window},gridstyle) \
 	-value "decimal inches" \
 	-command {xcircuit::config coordstyle "decimal inches"}
@@ -2625,18 +2625,18 @@ proc xcircuit::makemenus {window} {
    $m3 add separator
    $m3 add command -label "Drawing Scale" -command {xcircuit::promptdrawingscale}
 
-   set m2 [menu $m.snapmenu -tearoff 0]
+   set m2 [menu $m.snapmenu -tearoff 1]
    $m2 add check -label "Snap-to" -variable XCWinOps(${window},showsnap) \
 	-onvalue true \
 	-offvalue false -command {xcircuit::config snap \
 	$XCWinOps($XCOps(focus),showsnap); refresh}
    $m2 add command -label "Snap Spacing" -command {xcircuit::promptsnapspace}
 
-   set m2 [menu $m.linemenu -tearoff 0]
+   set m2 [menu $m.linemenu -tearoff 1]
    $m2 add command -label "Wire Linewidth" -command {xcircuit::promptborderwidth}
    $m2 add command -label "Global Linewidth" -command {xcircuit::promptlinewidth}
 
-   set m2 [menu $m.elementsmenu -tearoff 0]
+   set m2 [menu $m.elementsmenu -tearoff 1]
    $m2 add cascade -label "Border" -menu $m2.bordermenu
    $m2 add cascade -label "Fill" -menu $m2.fillmenu
    $m2 add cascade -label "Color" -menu $m2.colormenu
@@ -2660,7 +2660,7 @@ proc xcircuit::makemenus {window} {
 	$XCWinOps($XCOps(focus),pathedittype)}
    $m2 add cascade -label "Polygon Edit" -menu $m2.polyeditmenu
 
-   set m3 [menu $m2.bordermenu -tearoff 0]
+   set m3 [menu $m2.bordermenu -tearoff 1]
    $m3 add command -label "Linewidth" -command {xcircuit::promptborderwidth}
    $m3 add separator
    $m3 add radio -label "Solid" -variable XCWinOps(${window},linestyle) \
@@ -2693,7 +2693,7 @@ proc xcircuit::makemenus {window} {
 	-command {xcircuit::config boxedit \
 	$XCWinOps($XCOps(focus),polyedittype)}
 
-   set m3 [menu $m2.fillmenu -tearoff 0]
+   set m3 [menu $m2.fillmenu -tearoff 1]
    $m3 add radio -image img_stip100 -variable XCWinOps(${window},fillamount) \
 	-value 100 -command {xcircuit::fill 100 opaque}
    $m3 add radio -image img_stip88 -variable XCWinOps(${window},fillamount) \
@@ -2718,13 +2718,13 @@ proc xcircuit::makemenus {window} {
    $m3 add radio -label "Transparent" -variable XCWinOps(${window},opaque) \
 	-value false -command {xcircuit::fill transparent}
 
-   set m3 [menu $m2.colormenu -tearoff 0]
+   set m3 [menu $m2.colormenu -tearoff 1]
    $m3 add command -label "Add New Color" -command {xcircuit::picknewcolor}
    $m3 add separator
    $m3 add radio -label "Inherit Color" -variable XCWinOps(${window},colorval) \
 	-value inherit -command {color set inherit}
 
-   set m3 [menu $m2.parammenu -tearoff 0]
+   set m3 [menu $m2.parammenu -tearoff 1]
    $m3 add command -label "Manage Parameters" -command {xcircuit::prompteditparams}
    $m3 add separator
    $m3 add check -label "X Position" -variable XCWinOps(${window},xposparam) \
@@ -2788,7 +2788,7 @@ proc xcircuit::makemenus {window} {
 		{xcircuit::parameter make "minor axis"} \
 		{xcircuit::parameter replace "minor axis"}}
 
-   set m3 [menu $m2.polyeditmenu -tearoff 0]
+   set m3 [menu $m2.polyeditmenu -tearoff 1]
    $m3 add radio -label "Manhattan Box Edit" \
 	-variable XCWinOps(${window},polyedittype) \
 	-value manhattan -command {xcircuit::config boxedit manhattan}
@@ -2801,7 +2801,7 @@ proc xcircuit::makemenus {window} {
    $m3 add radio -label "Normal" -variable XCWinOps(${window},polyedittype) \
 	-value normal -command {xcircuit::config boxedit normal}
 
-   set m [menu ${window}.menubar.windowbutton.windowmenu -tearoff 0]
+   set m [menu ${window}.menubar.windowbutton.windowmenu -tearoff 1]
    $m add command -label "Zoom In" -command {zoom 1.5; refresh}
    $m add command -label "Zoom Out" -command {zoom [expr {1 / 1.5}]; refresh}
    $m add command -label "Pan" -command {$XCOps(focus).mainframe.toolbar.bp invoke}
@@ -2814,7 +2814,7 @@ proc xcircuit::makemenus {window} {
    $m add command -label "Page Directory" -command {xcircuit::page directory}
    $m add cascade -label "Goto Page" -menu $m.pagemenu
 
-   set m [menu ${window}.menubar.netlistbutton.netlistmenu -tearoff 0]
+   set m [menu ${window}.menubar.netlistbutton.netlistmenu -tearoff 1]
    $m add command -label "Make Pin" -command \
 	{set XCWinOps($XCOps(focus),labeltype) "Pin Label"; set \
 	XCWinOps($XCOps(focus),labelimage) img_tp; \
@@ -2860,7 +2860,7 @@ proc xcircuit::makemenus {window} {
 	{if {$XCOps(forcenets)} {xcircuit::netlist update}; \
 	xcircuit::netlist write pcb pcbnet}
 
-   set m2 [menu $m.pinmenu -tearoff 0]
+   set m2 [menu $m.pinmenu -tearoff 1]
    $m2 add command -label "Normal label" -command {xcircuit::label type normal}
    $m2 add command -label "Local Pin" -command {xcircuit::label type pin}
    $m2 add command -label "Global Pin" -command {xcircuit::label type global}
@@ -2956,12 +2956,12 @@ if {[string range [wm title .] 0 3] == "wish"} {
 # Library and Page menus (common to all windows)
 #----------------------------------------------------------------------
 
-menu .librarymenu -tearoff 0
+menu .librarymenu -tearoff 1
 .librarymenu add command -label "New Library Page" -command \
 	{xcircuit::promptaddlibrary}
 .librarymenu add separator
 
-menu .pagemenu -tearoff 0
+menu .pagemenu -tearoff 1
 .pagemenu add command -label "Add New Page" -command {xcircuit::page make}
 .pagemenu add separator
 

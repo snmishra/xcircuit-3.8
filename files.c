@@ -47,6 +47,9 @@ extern void Route(XCWindowData *, Boolean);
 extern int ReadSpice(FILE *);
 #endif
 
+#ifndef S_ISDIR
+#define S_ISDIR(m) (((m) & _S_IFDIR) == _S_IFDIR)
+#endif
 /*------------------------------------------------------------------------*/
 /* Useful (local) defines						  */
 /*------------------------------------------------------------------------*/
