@@ -1486,11 +1486,12 @@ typedef struct _Technology {
 
 /* Known flags for library pages */
 
-#define LIBRARY_CHANGED		0x01
-#define LIBRARY_READONLY	0x02
-#define LIBRARY_REPLACE		0x04	/* Replace instances when reading */
-#define LIBRARY_REPLACE_TEMP	0x08	/* Temporary store */
-#define LIBRARY_USED		0x10	/* Temporary marker flag */
+#define TECH_CHANGED		0x01
+#define TECH_READONLY		0x02	/* Technology file not writable */
+#define TECH_IMPORTED		0x04	/* Loaded only part of file */
+#define TECH_REPLACE		0x08	/* Replace instances when reading */
+#define TECH_REPLACE_TEMP	0x10	/* Temporary store */
+#define TECH_USED		0x20	/* Temporary marker flag */
 
 /*----------------------------------------------------------------------*/
 /* A convenient structure for holding all the object lists		*/

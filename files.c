@@ -1351,7 +1351,7 @@ void importfromlibrary(short mode, char *libname, char *objname)
    Boolean dependencies = False;
    TechPtr nsptr = NULL;
    
-   ps = libopen(libname, mode, inname, 0);
+   ps = libopen(libname, mode, inname, 149);
    if (ps == NULL) {
       Fprintf(stderr, "Cannot open library %s for import.\n", libname);
       return;
@@ -1391,6 +1391,17 @@ void importfromlibrary(short mode, char *libname, char *objname)
 		  if (!strncmp(tptr, ".lps", 4))
 		     *tptr = '\0';
 	       nsptr = AddNewTechnology(techname, inname);
+	       if (nsptr) {
+		  // Set the IMPORTED flag, to help prevent overwriting
+		  // the techfile with a truncated version of it, unless
+		  // the filename of the techfile has been changed, in
+		  // which case the technology should be considered to
+		  // stand on its own, and is not considered a partially
+		  // complete imported version of the original techfile.
+
+		  if (!strcmp(inname, nsptr->filename))
+		     nsptr->flags |= TECH_IMPORTED;
+	       }
 	    }
 	 }
          else if (!strncmp(tptr, "Depend", 6)) {
@@ -1474,11 +1485,11 @@ void TechReplaceSave()
 
    for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next)
    {
-      if (nsp->flags & LIBRARY_REPLACE)
-	 nsp->flags |= LIBRARY_REPLACE_TEMP;
+      if (nsp->flags & TECH_REPLACE)
+	 nsp->flags |= TECH_REPLACE_TEMP;
       else
-         nsp->flags &= ~LIBRARY_REPLACE_TEMP;
-      nsp->flags &= ~LIBRARY_REPLACE;
+         nsp->flags &= ~TECH_REPLACE_TEMP;
+      nsp->flags &= ~TECH_REPLACE;
    }
 }
 
@@ -1492,10 +1503,10 @@ void TechReplaceRestore()
 
    for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next)
    {
-      if (nsp->flags & LIBRARY_REPLACE_TEMP)
-	 nsp->flags |= LIBRARY_REPLACE;
+      if (nsp->flags & TECH_REPLACE_TEMP)
+	 nsp->flags |= TECH_REPLACE;
       else
-         nsp->flags &= ~LIBRARY_REPLACE;
+         nsp->flags &= ~TECH_REPLACE;
    }
 }
 
@@ -1508,7 +1519,7 @@ void TechReplaceAll()
    TechPtr nsp;
 
    for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next)
-      nsp->flags |= LIBRARY_REPLACE;
+      nsp->flags |= TECH_REPLACE;
 }
 
 /*------------------------------------------------------*/
@@ -1520,7 +1531,7 @@ void TechReplaceNone()
    TechPtr nsp;
 
    for (nsp = xobjs.technologies; nsp != NULL; nsp = nsp->next)
-      nsp->flags &= ~LIBRARY_REPLACE;
+      nsp->flags &= ~TECH_REPLACE;
 }
 
 
@@ -1762,6 +1773,13 @@ Boolean loadlibrary(short mode)
 	       if ((nptr != NULL) && !strcmp(nptr, ".lps")) *nptr = '\0';
 
 	       nsptr = AddNewTechnology(cptr, inname);
+
+	       if (nsptr) {
+		  // If anything was previously imported from this file
+		  // using importfromlibrary(), then the IMPORTED flag
+		  // will be set and needs to be cleared.
+	          nsptr->flags &= ~TECH_IMPORTED;
+	       }
 	    }
          }
 
@@ -1811,7 +1829,7 @@ Boolean loadlibrary(short mode)
    if ((mode != FONTLIB) && (nsptr != NULL)) {
       ps = fopen(inname, "a");
       if (ps == NULL)
-         nsptr->flags |= LIBRARY_READONLY;
+         nsptr->flags |= TECH_READONLY;
       else
          fclose(ps);
    }
@@ -3382,7 +3400,7 @@ Boolean library_object_unique(short mode, objectptr newobject, objlistptr redef)
 
 	  TechPtr nsptr = GetObjectTechnology(newobject);
 
-	  if (nsptr && (nsptr->flags & LIBRARY_REPLACE)) {
+	  if (nsptr && (nsptr->flags & TECH_REPLACE)) {
 	     reset(newobject, DESTROY);
 	     (*libobjects)--;
 	     is_unique = False;
@@ -4963,7 +4981,7 @@ void savelibpopup(xcWidget button, char *technology, caddr_t nulldata)
    nsptr = LookupTechnology(technology);
 
    if (nsptr != NULL) {
-      if ((nsptr->flags & LIBRARY_READONLY) != 0) {
+      if ((nsptr->flags & TECH_READONLY) != 0) {
          Wprintf("Library technology \"%s\" is read-only.", technology);
          return;
       }
@@ -4994,8 +5012,8 @@ void savelibrary(xcWidget w, char *technology)
 void savetechnology(char *technology, char *outname)
 {
    FILE *ps;
-   char *outptr, *validname, outfile[150]; /* *libname, (jdk) */
-   objectptr *wroteobjs, libobjptr, *optr, depobj; /* *libptr, (jdk) */
+   char *outptr, *validname, outfile[150];
+   objectptr *wroteobjs, libobjptr, *optr, depobj;
    genericptr *gptr;
    liblistptr spec;
    short written;
@@ -5017,13 +5035,6 @@ void savetechnology(char *technology, char *outname)
    else
       nsptr = LookupTechnology(technology);
 
-   if (nsptr != NULL) {
-      if ((nsptr->flags & LIBRARY_READONLY) != 0) {
-         Wprintf("Library technology \"%s\" is read-only.", technology);
-         return;
-      }
-   }
-
    if ((outptr = strrchr(outname, '/')) == NULL)
       outptr = outname;
    else
@@ -5034,10 +5045,44 @@ void savetechnology(char *technology, char *outname)
    xc_tilde_expand(outfile, 149);
    while(xc_variable_expand(outfile, 149));
 
+   if (nsptr != NULL) {
+      // To be pedantic, we should probably check that the inodes of the
+      // files are different, to be sure we are avoiding an unintentional
+      // over-write.
+
+      if (!strcmp(outfile, nsptr->filename)) {
+
+	 if ((nsptr->flags & TECH_READONLY) != 0) {
+	    Wprintf("Technology file \"%s\" is read-only.", technology);
+	    return;
+	 }
+
+	 if ((nsptr->flags & TECH_IMPORTED) != 0) {
+	    Wprintf("Attempt to write a truncated technology file!");
+	    return;
+	 }
+      }
+   }
+
    ps = fopen(outfile, "wb");
    if (ps == NULL) {
       Wprintf("Can't open PS file.");
+      if (nsptr && (!strcmp(nsptr->filename, outfile))) {
+	 Wprintf("Marking technology \"%s\" as read-only.", technology);
+	 nsptr->flags |= TECH_READONLY;
+      }
       return;
+   }
+
+   /* Did the technology name change?  If so, register the new name.	*/
+   /* Clear any "IMPORTED" or "READONLY" flags.				*/
+
+   if (nsptr && strcmp(outfile, nsptr->filename)) {
+      Wprintf("Technology filename changed from \"%s\" to \"%s\".",
+		nsptr->filename, outfile);
+      free(nsptr->filename);
+      nsptr->filename = strdup(outfile);
+      nsptr->flags &= ~(TECH_READONLY | TECH_IMPORTED);
    }
 
    fprintf(ps, "%%! PostScript set of library objects for XCircuit\n");
@@ -5175,7 +5220,7 @@ void savetechnology(char *technology, char *outname)
    }
 
    setassaved(wroteobjs, written);
-   if (nsptr) nsptr->flags &= (~LIBRARY_CHANGED);
+   if (nsptr) nsptr->flags &= (~TECH_CHANGED);
    xobjs.new_changes = countchanges(NULL);
 
    /* and the postlog */
@@ -6150,7 +6195,9 @@ short printparams(FILE *ps, objinstptr sinst, short stcount)
 
          switch (ops->type) {
 	    case XC_STRING:
+	       fputs("(", ps);
 	       writelabelsegs(ps, &loccount, ops->parameter.string);
+	       fputs(") ", ps);
 	       break;
 	    case XC_EXPR:
 	       ps_expr = evaluate_expr(sinst->thisobject, ops, sinst);

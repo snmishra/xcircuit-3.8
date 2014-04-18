@@ -7266,7 +7266,7 @@ int xctcl_page(ClientData clientData, Tcl_Interp *interp,
 		  else if (!strcmp(techstr, "none")) TechReplaceNone();
 		  else {
 		     TechPtr nsptr = LookupTechnology(techstr);
-		     if (nsptr != NULL) nsptr->flags |= LIBRARY_REPLACE;
+		     if (nsptr != NULL) nsptr->flags |= TECH_REPLACE;
 		  }
 		  i++;
 	       }
@@ -7478,7 +7478,7 @@ int xctcl_page(ClientData clientData, Tcl_Interp *interp,
 		     else {
 			TechPtr nsptr = LookupTechnology(techstr);
 			if (nsptr != NULL)
-			   nsptr->flags |= LIBRARY_REPLACE;
+			   nsptr->flags |= TECH_REPLACE;
 		     }
 		     objc--;
 	          }
@@ -8054,11 +8054,11 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 		     if (nsptr != NULL) {
 			if ((nsptr->technology == NULL) ||
 				(strlen(nsptr->technology) == 0)) continue;
-			if (!(nsptr->flags & LIBRARY_USED)) {
+			if (!(nsptr->flags & TECH_USED)) {
 			   Tcl_ListObjAppendElement(interp, olist,
 				Tcl_NewStringObj(nsptr->technology,
 					strlen(nsptr->technology)));
-			   nsptr->flags |= LIBRARY_USED;
+			   nsptr->flags |= TECH_USED;
 			}
 		     }
 		  }
@@ -8067,7 +8067,7 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 	 }
 	 Tcl_SetObjResult(interp, olist);
 	 for (nsptr = xobjs.technologies; nsptr != NULL; nsptr = nsptr->next)
-	    nsptr->flags &= ~LIBRARY_USED;
+	    nsptr->flags &= ~TECH_USED;
 	 free((char *)pagelist);
 	 break;
 
@@ -8132,7 +8132,7 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 		  }
 		  else {
 		     otech = GetObjectTechnology(libobj);
-		     otech->flags |= LIBRARY_CHANGED;
+		     otech->flags |= TECH_CHANGED;
 		     objnamelen = strlen(cptr + 2);
 		     memmove(libobj->name + technamelen + 2,
 				cptr + 2, (size_t)strlen(cptr + 2));
@@ -8155,7 +8155,7 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 		  }
 		  else {
 		     otech = GetObjectTechnology(libobj);
-		     otech->flags |= LIBRARY_CHANGED;
+		     otech->flags |= TECH_CHANGED;
 		     objnamelen = strlen(cptr + 2);
 		     memmove(libobj->name + technamelen + 2,
 				cptr + 2, (size_t)strlen(cptr + 2));
@@ -8167,7 +8167,7 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 		  *(libobj->name + technamelen + 2 + objnamelen) = '\0';
 	       }
 	    }
-	    if (nsptr != NULL) nsptr->flags |= LIBRARY_CHANGED;
+	    if (nsptr != NULL) nsptr->flags |= TECH_CHANGED;
 	    break;
 	 }
 
@@ -8216,14 +8216,14 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 	     if (Tcl_GetBooleanFromObj(interp, objv[3], &bval) != TCL_OK)
 		return TCL_ERROR;
 	     else if (bval == 1)
-	        nsptr->flags |= LIBRARY_CHANGED;
+	        nsptr->flags |= TECH_CHANGED;
 	     else
-	        nsptr->flags &= ~LIBRARY_CHANGED;
+	        nsptr->flags &= ~TECH_CHANGED;
 	 }
 	 else {
 	     tech_set_changes(nsptr); /* Ensure change flags are updated */
 	     Tcl_SetObjResult(interp,
-			Tcl_NewBooleanObj(((nsptr->flags & LIBRARY_CHANGED)
+			Tcl_NewBooleanObj(((nsptr->flags & TECH_CHANGED)
 			== 0) ? FALSE : TRUE));
 	 }
 	 break;
@@ -8233,7 +8233,7 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 	 if (nsptr) {
 	    if (objc == 3) {
 	       Tcl_SetObjResult(interp,
-			Tcl_NewBooleanObj(((nsptr->flags & LIBRARY_READONLY) == 0)
+			Tcl_NewBooleanObj(((nsptr->flags & TECH_READONLY) == 0)
 			? TRUE : FALSE));
 	    }
 	    else if (objc == 4) {
@@ -8241,9 +8241,9 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 
 	       Tcl_GetBooleanFromObj(interp, objv[3], &bval);
 	       if (bval == 0)
-	          nsptr->flags |= LIBRARY_READONLY;
+	          nsptr->flags |= TECH_READONLY;
 	       else
-	          nsptr->flags &= (~LIBRARY_READONLY);
+	          nsptr->flags &= (~TECH_READONLY);
 	    }
 	 }
 	 else {
@@ -8261,15 +8261,13 @@ int xctcl_tech(ClientData clientData, Tcl_Interp *interp,
 	 }
  	 else if ((nsptr != NULL) && (objc == 4)) {
 	    /* Technology being saved under a different filename. */
-	    if (nsptr->filename != NULL) free(nsptr->filename);
-	    nsptr->filename = strdup(Tcl_GetString(objv[3]));
-	    filename = nsptr->filename;
+	    filename = Tcl_GetString(objv[3]);
 
 	    /* Re-check read-only status of the file */
-	    nsptr->flags &= ~(LIBRARY_READONLY);
+	    nsptr->flags &= ~(TECH_READONLY);
 	    chklib = fopen(filename, "a");
 	    if (chklib == NULL)
-	       nsptr->flags |= LIBRARY_READONLY;
+	       nsptr->flags |= TECH_READONLY;
 	    else
 	       fclose(chklib); 
 	 }
@@ -8394,7 +8392,7 @@ int xctcl_library(ClientData clientData, Tcl_Interp *interp,
 		  else {
 		     TechPtr nsptr = LookupTechnology(techstr);
 		     if (nsptr != NULL)
-			nsptr->flags |= LIBRARY_REPLACE;
+			nsptr->flags |= TECH_REPLACE;
 		  }
 	       }
 	       else

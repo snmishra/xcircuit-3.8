@@ -1263,7 +1263,7 @@ void tech_set_changes(TechPtr refns)
          if (getchanges(thisobj) > 0) {
             ns = GetObjectTechnology(thisobj);
 	    if ((refns == NULL) || (refns == ns)) 
-	       ns->flags |= LIBRARY_CHANGED;
+	       ns->flags |= TECH_CHANGED;
 	 }
       }
    }
@@ -1275,7 +1275,7 @@ void tech_set_changes(TechPtr refns)
 
 void tech_mark_changed(TechPtr ns)
 {
-   if (ns != NULL) ns->flags |= LIBRARY_CHANGED;
+   if (ns != NULL) ns->flags |= TECH_CHANGED;
 }
 
 /*------------------------------------------------------*/
@@ -1389,6 +1389,12 @@ void catmove(int x, int y)
 /*------------------------------------------------------*/
 /* Make a duplicate of an object, put in the User	*/
 /* Library or the current library (if we're in one).	*/
+/*							*/
+/* Updated 2/8/2014 for use with technology namespaces:	*/
+/* it is most likely that the copied object is to be	*/
+/* modified but kept in the same namespace.  So, when	*/
+/* renaming the object, prepend "_" to the object name	*/
+/* instead of the namespace prefix.			*/
 /*------------------------------------------------------*/
 
 void copycat()
@@ -1398,6 +1404,7 @@ void copycat()
    objinstptr libobj;
    oparamptr ops, newops;
    int i, libnum;
+   char *cptr;
 
    libnum = is_library(topobject);
    if (libnum < 0) libnum = USERLIB - LIBRARY;  /* default */
@@ -1419,7 +1426,13 @@ void copycat()
 
       /* give the new object a unique name */
 
-      sprintf((*newobj)->name, "_%s", oldobj->name);
+      cptr = strstr(oldobj->name, "::");
+      if (cptr == NULL)
+	 sprintf((*newobj)->name, "_%s", oldobj->name);
+      else {
+	 strcpy((*newobj)->name, oldobj->name);
+	 sprintf((*newobj)->name + (cptr - oldobj->name) + 2, "_%s", cptr + 2);
+      }
       checkname(*newobj);
 
       /* copy other object properties */
